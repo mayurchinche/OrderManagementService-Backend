@@ -3,9 +3,9 @@ from datetime import datetime, timedelta
 
 secret_key = "your_secret_key"  # Store this in an env variable
 
-def create_jwt(user):
+def encode_jwt(user):
     payload = {
-        'user_id': user.id,
+        'user_id': user.contact_number,
         'exp': datetime.utcnow() + timedelta(days=1)  # Token expires in 1 day
     }
     token = jwt.encode(payload, secret_key, algorithm='HS256')
