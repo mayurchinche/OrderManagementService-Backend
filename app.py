@@ -1,0 +1,12 @@
+from flask import Flask
+
+app = Flask(__name__)
+
+
+@app.route('/')
+def hello_world() -> object:
+    return 'Welcom to order tracking management'
+
+
+if __name__ == '__main__':
+    app.run()
