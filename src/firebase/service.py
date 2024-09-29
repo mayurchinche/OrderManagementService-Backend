@@ -1,7 +1,11 @@
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import auth
-cred = credentials.Certificate('src/firebase/credentials.json')
+from src.firebase import config as firebase_config
+
+import json
+firebase_credential_dict=firebase_config.get_credentials()
+cred = credentials.Certificate(firebase_credential_dict)
 firebase_admin.initialize_app(cred)
 
 def verify_firebase_token(id_token):

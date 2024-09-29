@@ -1,0 +1,40 @@
+Firebase_Env_Variables:
+ type: service_account
+ project_id : omsphoneauthentication
+ private_key_id: 98fa096551b8a939bc9aa1beabc50b3cedffb8df
+ private_key: |
+  -----BEGIN PRIVATE KEY-----
+  MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDc8GjRnDZ4mUCj 
+  8zqiLfVEMEzjUTj6CDc56tnYAKoiCAYsDVb7Dd8zRO3/KBxicdJv96ecfIMqYEA9
+  JZred/5qqT9YmPAUHmZT1n54033XyFoMs3bdnmDr/eo7OOlhUED6zTQOHnprN+Ua
+  P9Oy8X1iwZe7NyVVceGItp7b7Y12K6oZjxgchO/gVuprMZiWbGLaN/GnwneyW8jL
+  hCPHPprcYnNt0mD5i9XLOsE+L8ffM1KjZ7Cb351/v2MrlVmcVVaXWIkk6O3Td12C
+  FoF9o7ai9k7jYBOw21SZBLJxSK9zjPttkNYHezo8JKJUJrUFPpnmtcfrwWX6hJaw
+  yAQYemRNAgMBAAECggEAALRXrTe0+OYce1TGGfrHv6wpUyvMTogSY5Q1X0DD3GT9
+  OgyEaU266ZFmu5Tvn6lymrfcwWrfN8P6ur4KNA2a0ogG+hKp6HKDpxVsm5ipUqrH
+  DUxjDKzHbPpZdoY8QI0Ax3de0fEiJpQnXi0qbGMbO6J8UTBkt7AiqX8KJGrgqte/
+  7F4c0YvdG9MG3SFOdglNAPd/oxheQ/SccA6w1XX9k4013j1bSkXyEB3Lg51M2jVb
+  UbAyEUwFiPPCjVMX7YCW7ieAkWvd53b9FQ0C6QC5n7HupgJmVTyuDXRSWCKQBxlt
+  LOq716HWE8FyIf7uih6fx+YgaZhwdq81EPaJbrni4QKBgQD6UZONTGdpY0csdBsd
+  fJ6BVPF0QXgXGUAUT0j73RmKH0zqtxp4kMWAnjOe09J8qQ6e4llmxRHyem/m//TE
+  TDBhGV0AS3kNvpswPnFKevknmGx8mqJMfw608ePdssGhSMp9yw89BUOBFIpkeOpE
+  ppM3nWwgMmePwcxAARZ7J61vrQKBgQDh9CEd73ApBSSZw5m3XdNupZsoAnujoAqN
+  pRIHqGFPx3PKDf5FLpm66ejUHuYbYPC7v+Z3Q5iJ7oD2+DbI/+E5XGARzZJ6pioh
+  k9yRFLOt5cLC0sRyXVFo7Zf/uB9V/IZjIx7hDzZferSWImMeAcy266NRWHzl89Fz
+  v5/mKa7bIQKBgDvKXHo1s8XChu+hVBC5AYtW5M2mDa9Gwr2XKpGugDkzvMWbsuD1
+  g5dzMlVPt0k7gFiHLF+V1vGaOTxuCuMQZ8XprwMxA9s6mgrt/1WRBg5lJBSnQvkO
+  qE6kMI918TY7EtL1O9CRf0xHwb65+wsm1qdEHN2b7Iyz97uaBuqn0Y+JAoGAaczl
+  QN4f16VH2RQEwx6U5Qd4WkinWhuTNXXotls6jZ+n8SGSQRSr+SCT29dICePfdRpL
+  MOce4t8h1gKtrHpcHH7LoSpv/ywVKDnTGr/lznR6OL12LNLTTt2JwbyWN64RwxPr
+  3pg/7n9HVdFuNdvD3pcBlxJnEUmUdq1wktZLwOECgYEA6nNFUEcKJ0KnT/d3Zcd3
+  3FbhGzEKJF+Jfj7YjKgQBy3MGqcL60YT6jmyYbkFglhmALEScZeT4oJUGSZ161ak
+  hgXIv84iV/gd40jpzuJLfIMYHIJYcAglNAT7vP8cFhTsdrGyQzUQX5vmXkbqEkN/
+  v6PX0O8HTVk31WgosW90XKc=
+  -----END PRIVATE KEY-----
+ client_email: firebase-adminsdk-2lzl6@omsphoneauthentication.iam.gserviceaccount.com
+ client_id: 104544945231752304298
+ auth_uri: https://accounts.google.com/o/oauth2/auth
+ token_uri: https://oauth2.googleapis.com/token
+ auth_provider_x509_cert_url: https://www.googleapis.com/oauth2/v1/certs
+ client_x509_cert_url: https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-2lzl6%40omsphoneauthentication.iam.gserviceaccount.com
+ universe_domain: googleapis.co
