@@ -11,6 +11,10 @@ from src.models.user import User
 from src.db.db import db
 from src.sequrity.jwt_handler import encode_jwt
 from src.exception.global_exception_handler import handle_exception
+from flask import request, jsonify
+from firebase_admin import auth
+from src.firebase import service as firebase_service
+
 auth_bp = Blueprint('auth', __name__)
 
 
@@ -21,42 +25,94 @@ auth_bp = Blueprint('auth', __name__)
 def register():
     """
     Register a new user.
+
     ---
     tags:
-      - Authentication
+      - UserRegistration
+    summary: "Register a new user"
+    description: "This endpoint registers a new user after verifying the OTP using Firebase authentication."
+    consumes:
+      - application/json
+    produces:
+      - application/json
     parameters:
-      - name: user
-        in: body
+      - in: body
+        name: body
         required: true
+        description: JSON payload containing user registration data.
+        schema:
+          type: object
+          required:
+            - id_token
+            - user_name
+            - user_password
+            - contact_number
+          properties:
+            id_token:
+              type: string
+              description: "The Firebase ID token received after OTP verification."
+            user_name:
+              type: string
+              description: "The user's name."
+            user_password:
+              type: string
+              description: "The user's password (will be hashed before storing)."
+            contact_number:
+              type: string
+              description: "The user's contact number (phone number)."
+    responses:
+      201:
+        description: "User registered successfully."
         schema:
           type: object
           properties:
-            user_name:
+            message:
               type: string
-              example: "john_doe"
-            password:
-              type: string
-              example: "securepassword"
-            contact_number:
-              type: string
-              example: "1234567890"
-    responses:
-      201:
-        description: User registered successfully
+              example: "User registered successfully!"
       400:
-        description: Bad request
-      409:
-        description: User already exists
+        description: "Missing required fields or validation errors."
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "User with this contact number already exists"
+      401:
+        description: "Invalid or expired Firebase token."
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Invalid or expired Firebase token"
+      500:
+        description: "Internal server error or database issues."
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "An internal error occurred. Please try again later."
     """
     try:
         data = request.json
         print("Data", data)
+        id_token = data.get('id_token')
         user_name = data.get('user_name')
         password = data.get('password')
         contact_number = data.get('contact_number')
 
-        if not user_name or not password or not contact_number:
-            return jsonify({"error": "Please provide user_name, password, and contact_number"}), 400
+        if not id_token or not user_name or not password or not contact_number:
+            return jsonify({"error": "Please provide id_token, user_name, password, and contact_number"}), 400
+
+        # Verify the Firebase id_token
+
+        decoded_token = firebase_service.verify_firebase_token(id_token)
+        firebase_contact_number = decoded_token['contact_number']
+
+        # Ensure that the contact number matches the one in the Firebase token
+        if contact_number != firebase_contact_number:
+            return jsonify({"error": "Contact number does not match Firebase token"}), 400
 
         # Check if user already exists
         existing_user = User.query.filter_by(user_name=user_name).first()
@@ -80,6 +136,79 @@ def register():
         print(f"Unhandled Error: {str(e)}")
         return jsonify({"error": "An error occurred during registration."}), 500
 
+@log_request
+@handle_exception
+@auth_bp.route('/generate_token', methods=['POST'])
+def generate_token():
+    """
+    Generate a Firebase custom token for a user.
+
+    ---
+    tags:
+      - UserRegistration
+    summary: "Generate Firebase token"
+    description: "This endpoint generates a Firebase custom token for a user after verifying the OTP."
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: JSON payload containing user details.
+        schema:
+          type: object
+          required:
+            - contact_number
+          properties:
+            contact_number:
+              type: string
+              description: "The user's contact number."
+    responses:
+      200:
+        description: "Token generated successfully."
+        schema:
+          type: object
+          properties:
+            token:
+              type: string
+              description: "Firebase custom token."
+      400:
+        description: "Missing required fields or OTP not verified."
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "OTP not verified or invalid contact number."
+      500:
+        description: "Internal server error."
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "An internal error occurred. Please try again later."
+    """
+    data = request.get_json()
+    contact_number = data.get('contact_number')
+
+    if not contact_number:
+        return jsonify({"error": "Contact number is required."}), 400
+
+    try:
+        # Check if OTP has been verified (implement your own logic here)
+        if not is_otp_verified(contact_number):  # Placeholder function
+            return jsonify({"error": "OTP not verified."}), 400
+
+        # Generate custom token
+        custom_token = auth.create_custom_token(contact_number)
+        return jsonify({"token": custom_token.decode()}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 # Login route
 @log_request
@@ -87,7 +216,7 @@ def register():
 @auth_bp.route('/login', methods=['POST'])
 def login():
     """
-    User Registration
+    User Authentication
             ---
             tags:
               - Authentication
@@ -150,3 +279,105 @@ def login():
         print(f"Unhandled Error: {str(e)}")
 
         return jsonify({"error": "User not found."}), 500
+
+
+def is_otp_verified(contact_number):
+    # Implement your logic to verify if OTP was confirmed for the contact number
+    # This might involve checking a database record or in-memory store
+    return True  # Placeholder; replace with actual verification logic
+
+
+
+
+
+
+
+
+
+
+
+# @log_request
+# @handle_exception
+# @auth_bp.route('/send-otp', methods=['POST'])
+# def send_otp():
+#     """
+#     Send an OTP to the user's contact number
+#     ---
+#     tags:
+#       - Authentication
+#     parameters:
+#       - in: body
+#         name: body
+#         required: true
+#         description: JSON payload with contact_number
+#         schema:
+#           type: object
+#           required:
+#             - contact_number
+#           properties:
+#             contact_number:
+#               type: string
+#               description: The contact number to send the OTP to.
+#     responses:
+#       200:
+#         description: OTP sent successfully
+#         schema:
+#           type: object
+#           properties:
+#             message:
+#               type: string
+#             otp:
+#               type: string
+#             contact_number:
+#               type: string
+#       400:
+#         description: Invalid contact number format
+#         schema:
+#           type: object
+#           properties:
+#             error:
+#               type: string
+#     """
+#     data = request.json
+#     contact_number = data.get('contact_number')
+#
+#     try:
+#         if not contact_number:
+#             return jsonify({'error': 'Contact number is required'}), 400
+#
+#             # Call function to send OTP
+#         token = firebase_config.firebase_send_otp(contact_number)
+#
+#         if token:
+#             return jsonify({'message': 'OTP sent', 'token': token}), 200
+#         else:
+#             return jsonify({'error': 'Failed to send OTP'}), 500
+#
+#     except Exception as ex:
+#         return jsonify({"error": str(ex)}), 500
+#
+#     # print("contact_number: ",contact_number)
+#     # # Use Firebase to send OTP
+#     # try:
+#     #     verification_id = auth.verify_id_token(contact_number)  # Adjust according to your Firebase implementation
+#     #     print("verification_id",verification_id)
+#     #     # Send OTP logic here (Firebase will handle it)
+#     #     return jsonify({"message": "OTP sent successfully!", "contact_number":contact_number,"verification_id": verification_id}), 200
+#     # except Exception as e:
+#     #     return jsonify({"error": str(e)}), 500
+
+# @log_request
+# @handle_exception
+# @auth_bp.route('/verify_user', methods=['POST'])
+# def verify_user():
+#     try:
+#         # Get Firebase ID token from request headers
+#         id_token = request.headers.get('Authorization').split(" ")[1]  # Assuming 'Bearer <token>'
+#
+#         # Verify the token
+#         user_id = firebase_service.verify_firebase_token(id_token)
+#
+#         # Return success response if token is valid
+#         return jsonify({"message": "User verified successfully", "user_id": user_id}), 200
+#     except ValueError as e:
+#         return jsonify({"error": str(e)}), 400

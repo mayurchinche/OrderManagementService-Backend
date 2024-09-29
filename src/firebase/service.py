@@ -1,8 +1,34 @@
 import firebase_admin
 from firebase_admin import credentials
-
+from firebase_admin import auth
 cred = credentials.Certificate('src/firebase/credentials.json')
 firebase_admin.initialize_app(cred)
+
+def verify_firebase_token(id_token):
+    """
+        Verify Firebase Token
+        ---
+        tags:
+          - Authentication
+        parameters:
+          - name: Authorization
+            in: header
+            type: string
+            required: true
+            description: "Bearer <Firebase ID Token>"
+        responses:
+          200:
+            description: User verified successfully
+          400:
+            description: Invalid token
+        """
+    try:
+        # Verify the Firebase ID token
+        decoded_token = auth.verify_id_token(id_token)
+        user_id = decoded_token.get('uid')
+        return user_id
+    except Exception as e:
+        raise ValueError(f"Token verification failed: {str(e)}")
 
 
 
