@@ -1,5 +1,7 @@
+import json
+
 import sqlalchemy
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, Response
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.auth.services import register_user, login_user
@@ -101,33 +103,46 @@ def register():
         user_name = data.get('user_name')
         password = data.get('password')
         contact_number = data.get('contact_number')
-
+        print(data)
         if not id_token or not user_name or not password or not contact_number:
             return jsonify({"error": "Please provide id_token, user_name, password, and contact_number"}), 400
 
         # Verify the Firebase id_token
 
-        decoded_token = firebase_service.verify_firebase_token(id_token)
-        firebase_contact_number = decoded_token['contact_number']
+        decoded_token, status_code=firebase_service.verify_firebase_token(id_token)
 
-        # Ensure that the contact number matches the one in the Firebase token
-        if contact_number != firebase_contact_number:
-            return jsonify({"error": "Contact number does not match Firebase token"}), 400
+        if status_code==200:
+            print(decoded_token.get_data(as_text=True), status_code)
+            firebase_user_data=decoded_token.get_data(as_text=True)
 
-        # Check if user already exists
-        existing_user = User.query.filter_by(user_name=user_name).first()
-        if existing_user:
-            return jsonify({"error": "User already exists"}), 409
+            firebase_user_data_json=json.loads(firebase_user_data)
 
-        hashed_password = generate_password_hash(password)
 
-        # Create a new user
-        new_user = User(user_name=user_name, user_password=hashed_password, contact_number=contact_number)
+            print("firebase_user_data",firebase_user_data_json)
 
-        # Add the user to the database
-        db.session.add(new_user)
-        db.session.commit()
-        return jsonify({"message": "User registered successfully!"}), 201
+            firebase_contact_number=firebase_user_data_json.get("contact_number")
+            print("firebase_contact_number",firebase_contact_number)
+            # Ensure that the contact number matches the one in the Firebase token
+            if contact_number != firebase_contact_number:
+                return jsonify({"error": "Contact number does not match Firebase token"}), 400
+
+            # Check if user already exists
+            existing_user = User.query.filter_by(user_name=user_name).first()
+            if existing_user:
+                return jsonify({"error": "User already exists"}), 409
+
+            hashed_password = generate_password_hash(password)
+
+            # Create a new user
+            new_user = User(user_name=user_name, user_password=hashed_password, contact_number=contact_number)
+
+            # Add the user to the database
+            db.session.add(new_user)
+            db.session.commit()
+            return jsonify({"message": "User registered successfully!"}), 201
+        else:
+            print(decoded_token.get_data(as_text=True))
+            return jsonify({"error": "Something Went Wrong."}), 400
     except SQLAlchemyError as e:
         db.session.rollback()  # Rollback in case of any error
         print(f"Database Error: {str(e)}")
@@ -204,6 +219,8 @@ def generate_token():
 
         # Generate custom token
         custom_token = auth.create_custom_token(contact_number)
+
+
         return jsonify({"token": custom_token.decode()}), 200
 
     except Exception as e:
