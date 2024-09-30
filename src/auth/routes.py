@@ -47,7 +47,7 @@ def register():
           required:
             - id_token
             - user_name
-            - user_password
+            - password
             - contact_number
           properties:
             id_token:
@@ -56,7 +56,7 @@ def register():
             user_name:
               type: string
               description: "The user's name."
-            user_password:
+            password:
               type: string
               description: "The user's password (will be hashed before storing)."
             contact_number:
@@ -127,8 +127,9 @@ def register():
                 return jsonify({"error": "Contact number does not match Firebase token"}), 400
 
             # Check if user already exists
-            existing_user = User.query.filter_by(user_name=user_name).first()
+            existing_user = User.query.filter_by(contact_number=contact_number).first()
             if existing_user:
+                print("User already exists")
                 return jsonify({"error": "User already exists"}), 409
 
             hashed_password = generate_password_hash(password)
