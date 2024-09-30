@@ -4,17 +4,16 @@ from src.docs.swagger import setup_swagger
 from src.configs.config import Config
 from src.exception import global_exception_handler
 from flask_sqlalchemy import SQLAlchemy
-
+from flask_cors import CORS
 from .db.db import  db
 
 def create_app():
     app = Flask(__name__)
-
     print("Config Loaded")
     # Load configuration
     app.config.from_object(Config)
     db.init_app(app)
-
+    CORS(app)
     # Register blueprints
     from .auth.routes import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/auth')
