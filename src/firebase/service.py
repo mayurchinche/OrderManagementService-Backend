@@ -40,8 +40,6 @@ def verify_firebase_token(id_token):
     try:
         # Verify the Firebase ID token
         decoded_token = auth.verify_id_token(id_token)
-        print("decoded_token--service: ",decoded_token)
-
         firebase_user_id = decoded_token['uid']
         firebase_contact_number = decoded_token.get('phone_number')
         # Proceed with further registration logic, e.g., saving the user to your database
