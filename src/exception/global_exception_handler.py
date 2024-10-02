@@ -1,11 +1,11 @@
-import functools
+from functools import wraps
 
 from flask import jsonify
 from sqlalchemy.exc import SQLAlchemyError
 
 
 def handle_exception(func):
-    @functools.wraps(func)
+    @wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)

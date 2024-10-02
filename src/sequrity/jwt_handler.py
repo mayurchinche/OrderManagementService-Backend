@@ -1,11 +1,15 @@
+import os
+
 import jwt
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
+from flask_jwt_extended import create_access_token, decode_token
 
-secret_key = "your_secret_key"  # Store this in an env variable
-
+secret_key=os.getenv('secret_key')
 def encode_jwt(user):
+
     payload = {
-        'user_id': user.contact_number,
+        'sub': user.contact_number,  # This will act as the identity (subject) claim
         'exp': datetime.utcnow() + timedelta(days=1)  # Token expires in 1 day
     }
     token = jwt.encode(payload, secret_key, algorithm='HS256')
@@ -19,3 +23,13 @@ def decode_jwt(token):
         return None  # Token has expired
     except jwt.InvalidTokenError:
         return None  # Invalid token
+
+def create_jwt_token(identity):
+    return create_access_token(identity=identity)
+
+def decode_jwt(token):
+    try:
+        decoded = decode_token(token)
+        return decoded
+    except Exception as e:
+        return None

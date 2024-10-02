@@ -24,6 +24,7 @@ def health_check():
         500:
             description: Failure
     """
+    print("System is healthy!..")
     return jsonify({"status": "OK"})
 
 
@@ -43,7 +44,7 @@ def test_db_connection():
     try:
         print("Is in test Db")
         # Test a simple query to check the database connection
-        db.session.execute(text('SELECT 1')  )# This is just to test the connection
+        print(db.session.execute(text('show tables')  ))# This is just to test the connection
         return jsonify({"message": "Database connection is successful!"}), 200
     except Exception as e:
         print("Exception as ex", e, traceback.print_exc())

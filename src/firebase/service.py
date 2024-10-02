@@ -9,13 +9,15 @@ from src.firebase import config as firebase_config
 import requests
 import json
 
-from src.logging.logging_handler import log_request
+from src.logging.logging_handler import log_request, log_response
+
 
 firebase_credential_dict=firebase_config.get_credentials()
 cred = credentials.Certificate(firebase_credential_dict)
 firebase_admin.initialize_app(cred)
 FIREBASE_API_KEY="AIzaSyBHqA9lD6ynLsb0C35tn7XQM1F7LzAgA9U"
 @log_request
+@log_response
 @handle_exception
 def verify_firebase_token(id_token):
     """
