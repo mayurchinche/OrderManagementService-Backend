@@ -365,10 +365,10 @@ def generate_jwt_token():
                   example: "An internal error occurred. Please try again later."
         """
     data = request.get_json()
+    print("data",data)
     contact_number = data.get('contact_number')
-
-    if not contact_number:
-        return jsonify({"error": "Contact number is required."}), 400
+    if not contact_number or not isinstance(contact_number, str):
+        return jsonify({"error": "Contact number is required and must be a string."}), 400
 
     try:
 

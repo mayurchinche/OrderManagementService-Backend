@@ -23,10 +23,11 @@ class OrderDetails(db.Model):
     user = db.relationship('User', backref=db.backref('OrderDetails', lazy=True))
 
     def __repr__(self):
+
         return (f"<Order {self.order_id} for User {self.user_contact_number}, "
                 f"Customer: {self.name_of_customer}, "
                 f"Ordered Quantity: {self.ordered_quantity}, "
                 f"Materials: {self.materials}, "
                 f"Order To: {self.order_to}, "
-                f"Order Date: {self.order_date.strftime('%Y-%m-%d')}, "
+                f"Order Date: {self.order_date}, "
                 f"Pending Quantity: {self.pending_quantity}>")
