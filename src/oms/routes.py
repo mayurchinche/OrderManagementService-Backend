@@ -3,22 +3,30 @@ import logging
 from flask_jwt_extended import get_jwt_identity
 from sqlalchemy import inspect
 
+
 from src.db.db import db
 from src.logging.logging_handler import log_request, log_response
 from flask import Blueprint, request, jsonify, current_app
 from src.exception.global_exception_handler import handle_exception
 from src.models.order_details import OrderDetails
 from src.oms import service as oms_service
-from src.sequrity.decorators import jwt_required_with_contact_validation, custom_jwt_required
+from src.sequrity.decorators import (
+    jwt_required_with_contact_validation,
+    custom_jwt_required,
+    role_required,
+)
 from sqlalchemy import text
-order_bp = Blueprint('order', __name__)
+
+order_bp = Blueprint("order", __name__)
 
 # Add a new order
 
-@order_bp.route('/add_new_order', methods=['POST'])
+
+@order_bp.route("/add_new_order", methods=["POST"])
 @log_request
 @log_response
 @jwt_required_with_contact_validation
+@role_required("Employee")
 @handle_exception
 def add_new_order():
     """
@@ -28,52 +36,68 @@ def add_new_order():
       - Orders
     summary: "Add new order"
     description: "This endpoint adds a new order to the order_details table."
-    parameters:
-      - name: Authorization
-        in: header
-        type: string
-        required: true
-        description: "JWT token in the format 'Bearer {token}'"
-      - name: order
-        in: body
-        required: true
-        schema:
-          type: object
-          required:
-                - contact_number
-          properties:
-            contact_number:
+    properties:
+           - name: Authorization
+              in: header
+              type: string
+              required: true
+              description: "JWT token in the format 'Bearer {token}'"
+           - contact_number:
               type: string
               description: "Contact number of the logged in user"
-            user_contact_number:
+           - user_contact_number:
               type: string
               description: "Contact number of the user placing the order"
-            name_of_customer:
+           - name_of_customer:
               type: string
               description: "Name of the customer"
-            ordered_quantity:
-              type: integer
-              description: "Quantity of items ordered"
-            materials:
+           - po_no:
+              type: string
+              description: "Purchase order number"
+           - whatsapp_date:
+              type: string
+              description: "Purchase Order Date"
+           - material_name:
+              type: string
+              description: "Name of required material"
+           - materials:
               type: string
               description: "Materials related to the order"
-            model:
+           - model:
               type: string
-              description: "Model associated with the order"
-            order_to:
+              description: "Material's Model associated with the order"
+           - order_quantity:
+              type: integer
+              description: "Quantity of items ordered"
+           - order_to:
               type: string
               description: "Who the order is placed with"
-            order_date:
+           - order_date:
               type: string
               format: date
               description: "Date when the order was placed"
-            received_date:
+           - received_date:
               type: string
               format: date
               description: "Date when the order was received"
-            pending_quantity:
+           - pending_quantity:
               type: integer
               description: "Quantity of items still pending"
+           - ordered_by:
+              type: string
+              description: "Ordered_By"
+           - approved_by:
+              type: string
+              description: "Approved_By"
+           - po_raised_by:
+              type: string
+              description: "PO_Raised_By"
+           - status:
+              type: string
+              description: "Current Status of order"
+           - note:
+              type: string
+              description: "Anything to highlight about the order"
     responses:
       201:
         description: Order added successfully
@@ -96,54 +120,55 @@ def add_new_order():
 
 
 # Get all orders placed by a specific user
-@order_bp.route('/get-orders', methods=['GET'])
+@order_bp.route("/get-orders", methods=["GET"])
 @log_request
 @log_response
 @jwt_required_with_contact_validation
 @handle_exception
 def get_orders():
     """
-        Get all orders placed by the user.
-        ---
-        tags:
-          - Orders
-        summary: "Get orders by user"
-        description: "This endpoint retrieves all orders placed by the user based on their contact number."
-        parameters:
-          - name: Authorization
-            in: header
-            type: string
-            required: true
-            description: "JWT token in the format 'Bearer {token}'"
-          - name: contact_number
-            in: query
-            type: string
-            required: true
-            description: The contact number of the user
-        responses:
-          200:
-            description: A list of orders
-            schema:
-              type: array
-              items:
-                properties:
-                  order_id:
-                    type: integer
-                  user_contact_number:
-                    type: string
-                  name_of_customer:
-                    type: string
-                  order_date:
-                    type: string
-                    format: date
-        produces:
-          - application/json
-        """
-    contact_number = request.args.get('contact_number')
+    Get all orders placed by the user.
+    ---
+    tags:
+      - Orders
+    summary: "Get orders by user"
+    description: "This endpoint retrieves all orders placed by the user based on their contact number."
+    parameters:
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: "JWT token in the format 'Bearer {token}'"
+      - name: contact_number
+        in: query
+        type: string
+        required: true
+        description: The contact number of the user
+    responses:
+      200:
+        description: A list of orders
+        schema:
+          type: array
+          items:
+            properties:
+              order_id:
+                type: integer
+              user_contact_number:
+                type: string
+              name_of_customer:
+                type: string
+              order_date:
+                type: string
+                format: date
+    produces:
+      - application/json
+    """
+    contact_number = request.args.get("contact_number")
     return oms_service.get_orders_by_user(contact_number)
 
+
 # Show all orders
-@order_bp.route('/show-all-orders', methods=['GET'])
+@order_bp.route("/show-all-orders", methods=["GET"])
 @log_request
 @log_response
 @jwt_required_with_contact_validation
@@ -190,8 +215,9 @@ def show_all_orders():
     """
     return oms_service.show_all_orders()
 
+
 # Add a new column to the order_details table
-@order_bp.route('/add-column', methods=['PUT'])
+@order_bp.route("/add-column", methods=["PUT"])
 @log_request
 @log_response
 @jwt_required_with_contact_validation
@@ -239,12 +265,12 @@ def add_column():
     produces:
       - application/json
     """
-    column_name = request.json.get('Column_Name')
-    print("column_name",column_name)
-    return oms_service.add_new_column(column_name )
+    column_name = request.json.get("Column_Name")
+    print("column_name", column_name)
+    return oms_service.add_new_column(column_name)
 
 
-@order_bp.route('/update_order', methods=['PUT'])
+@order_bp.route("/update_order", methods=["PUT"])
 @log_request
 @log_response
 @handle_exception
@@ -310,16 +336,17 @@ def update_order():
               example: "An internal error occurred."
     """
     data = request.get_json()
-    order_id = data.get('order_id')
-    order_status = data.get('order_status')
-    pending_quantity = data.get('pending_quantity')
+    order_id = data.get("order_id")
+    order_status = data.get("order_status")
+    pending_quantity = data.get("pending_quantity")
 
     if not order_id:
         return jsonify({"error": "Order ID is required."}), 400
 
-    return oms_service.update_order(order_id,order_status,pending_quantity )
+    return oms_service.update_order(order_id, order_status, pending_quantity)
 
-@order_bp.route('/get-all-columns', methods=['GET'])
+
+@order_bp.route("/get-all-columns", methods=["GET"])
 def get_all_columns():
     """
     Retrieves all columns dynamically from the OrderDetails table
@@ -346,12 +373,13 @@ def get_all_columns():
     inspector = inspect(db.engine)
 
     # Get all columns for the order_details table
-    columns = [column['name'] for column in inspector.get_columns('order_details')]
+    columns = [column["name"] for column in inspector.get_columns("order_details")]
 
     # Return the list of column names
     return jsonify({"columns": columns})
 
-@order_bp.route('/describe-order-table', methods=['GET'])
+
+@order_bp.route("/describe-order-table", methods=["GET"])
 def describe_order_table():
     """
     Get all columns of the OrderDetails table
@@ -380,15 +408,12 @@ def describe_order_table():
         # Get the table inspector
         inspector = inspect(db.engine)
         # Use reflection to get the columns of the order_details table
-        columns = inspector.get_columns('order_details')
+        columns = inspector.get_columns("order_details")
 
         # Prepare the column info as a response
         column_info = []
         for column in columns:
-            column_info.append({
-                'name': column['name'],
-                'type': str(column['type'])
-            })
+            column_info.append({"name": column["name"], "type": str(column["type"])})
         print("column_info", column_info)
         # Return the column information
         return jsonify(column_info), 200
@@ -398,7 +423,7 @@ def describe_order_table():
         return jsonify({"error": "Unable to describe table"}), 500
 
 
-@order_bp.route('/get-order-details', methods=['GET'])
+@order_bp.route("/get-order-details", methods=["GET"])
 def get_order_details():
     """
     Get order details including dynamically added columns
@@ -425,11 +450,11 @@ def get_order_details():
     """
     try:
         # Get the order_id from query parameters
-        order_id = request.args.get('order_id')
+        order_id = request.args.get("order_id")
 
         # Use reflection to get the columns of the order_details table
         inspector = inspect(db.engine)
-        columns = inspector.get_columns('order_details')
+        columns = inspector.get_columns("order_details")
 
         # Dynamically build the query to fetch the order details, including new columns
         query = db.session.query(OrderDetails).filter_by(order_id=order_id).first()
@@ -440,7 +465,7 @@ def get_order_details():
         # Dynamically build a dictionary of column values
         result = {}
         for column in columns:
-            result[column['name']] = getattr(query, column['name'], None)
+            result[column["name"]] = getattr(query, column["name"], None)
 
         return jsonify(result), 200
 
@@ -449,7 +474,7 @@ def get_order_details():
         return jsonify({"error": "Unable to fetch order details"}), 500
 
 
-@order_bp.route('/get-orders-updated', methods=['GET'])
+@order_bp.route("/get-orders-updated", methods=["GET"])
 def get_orders_updated():
     """
     Retrieve all orders.
@@ -523,10 +548,10 @@ def get_orders_updated():
     inspector = inspect(db.engine)
 
     # Get all columns for the order_details table
-    columns = [column['name'] for column in inspector.get_columns('order_details')]
+    columns = [column["name"] for column in inspector.get_columns("order_details")]
 
     # Perform a raw SQL query to fetch all rows and columns
-    orders = db.session.execute(text(f'SELECT * FROM order_details')).fetchall()
+    orders = db.session.execute(text(f"SELECT * FROM order_details")).fetchall()
 
     # Create a list to hold the orders data
     results = []
@@ -540,83 +565,83 @@ def get_orders_updated():
     return jsonify(results)
 
 
-@order_bp.route('/add-dynamic-order', methods=['PUT'])
+@order_bp.route("/add-dynamic-order", methods=["PUT"])
 @log_request
 @log_response
 def add_dynamic_order():
     """
-        Add a new order to the order_details table.
-        ---
-        tags:
-          - Orders
-        summary: "Add new order"
-        description: "This endpoint adds a new order to the order_details table."
-        parameters:
-          - name: Authorization
-            in: header
-            type: string
-            required: true
-            description: "JWT token in the format 'Bearer {token}'"
-          - name: order
-            in: body
-            required: true
-            schema:
-              type: object
-              required:
-                    - contact_number
-              properties:
-                contact_number:
-                  type: string
-                  description: "Contact number of the logged in user"
-                user_contact_number:
-                  type: string
-                  description: "Contact number of the user placing the order"
-                name_of_customer:
-                  type: string
-                  description: "Name of the customer"
-                ordered_quantity:
-                  type: integer
-                  description: "Quantity of items ordered"
-                materials:
-                  type: string
-                  description: "Materials related to the order"
-                model:
-                  type: string
-                  description: "Model associated with the order"
-                order_to:
-                  type: string
-                  description: "Who the order is placed with"
-                order_date:
-                  type: string
-                  format: date
-                  description: "Date when the order was placed"
-                received_date:
-                  type: string
-                  format: date
-                  description: "Date when the order was received"
-                pending_quantity:
-                  type: integer
-                  description: "Quantity of items still pending"
-                order_status:
-                  type: string
-                  description: "Status of order"
-        responses:
-          201:
-            description: Order added successfully
-            schema:
-              type: object
-              properties:
-                message:
-                  type: string
-                  description: "Success message"
-                order_id:
-                  type: integer
-                  description: "ID of the newly created order"
-        consumes:
-          - application/json
-        produces:
-          - application/json
-        """
-    data=request.get_json()
+    Add a new order to the order_details table.
+    ---
+    tags:
+      - Orders
+    summary: "Add new order"
+    description: "This endpoint adds a new order to the order_details table."
+    parameters:
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+        description: "JWT token in the format 'Bearer {token}'"
+      - name: order
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+                - contact_number
+          properties:
+            contact_number:
+              type: string
+              description: "Contact number of the logged in user"
+            user_contact_number:
+              type: string
+              description: "Contact number of the user placing the order"
+            name_of_customer:
+              type: string
+              description: "Name of the customer"
+            ordered_quantity:
+              type: integer
+              description: "Quantity of items ordered"
+            materials:
+              type: string
+              description: "Materials related to the order"
+            model:
+              type: string
+              description: "Model associated with the order"
+            order_to:
+              type: string
+              description: "Who the order is placed with"
+            order_date:
+              type: string
+              format: date
+              description: "Date when the order was placed"
+            received_date:
+              type: string
+              format: date
+              description: "Date when the order was received"
+            pending_quantity:
+              type: integer
+              description: "Quantity of items still pending"
+            order_status:
+              type: string
+              description: "Status of order"
+    responses:
+      201:
+        description: Order added successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              description: "Success message"
+            order_id:
+              type: integer
+              description: "ID of the newly created order"
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    """
+    data = request.get_json()
 
     return oms_service.add_dynamic_order(data)

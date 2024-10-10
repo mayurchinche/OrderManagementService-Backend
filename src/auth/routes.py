@@ -15,19 +15,24 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from src.logging.logging_handler import log_request, log_response
 from src.models.users import User
 from src.db.db import db
-from src.sequrity.decorators import custom_jwt_required, jwt_required_with_contact_validation
+from src.sequrity.decorators import (
+    custom_jwt_required,
+    jwt_required_with_contact_validation,
+)
 from src.sequrity.jwt_handler import encode_jwt
 from src.exception.global_exception_handler import handle_exception
 from flask import request, jsonify
 from firebase_admin import auth
 from src.firebase import service as firebase_service
 from src.sequrity.jwt_handler import secret_key
-auth_bp = Blueprint('auth', __name__)
+
+auth_bp = Blueprint("auth", __name__)
 
 
 # Registration route
 
-@auth_bp.route('/register', methods=['POST'])
+
+@auth_bp.route("/register", methods=["POST"])
 @log_request
 @log_response
 @handle_exception
@@ -113,12 +118,19 @@ def register():
     """
     try:
         data = request.json
-        id_token = data.get('id_token')
-        user_name = data.get('user_name')
-        password = data.get('password')
-        contact_number = data.get('contact_number')
+        id_token = data.get("id_token")
+        user_name = data.get("user_name")
+        password = data.get("password")
+        contact_number = data.get("contact_number")
         if not id_token or not user_name or not password or not contact_number:
-            return jsonify({"error": "Please provide id_token, user_name, password, and contact_number"}), 400
+            return (
+                jsonify(
+                    {
+                        "error": "Please provide id_token, user_name, password, and contact_number"
+                    }
+                ),
+                400,
+            )
 
         # Verify the Firebase id_token
 
@@ -133,7 +145,10 @@ def register():
 
             # Ensure that the contact number matches the one in the Firebase token
             if contact_number != firebase_contact_number:
-                return jsonify({"error": "Contact number does not match Firebase token"}), 401
+                return (
+                    jsonify({"error": "Contact number does not match Firebase token"}),
+                    401,
+                )
 
             # Check if user already exists
             existing_user = User.query.filter_by(contact_number=contact_number).first()
@@ -143,7 +158,11 @@ def register():
             hashed_password = generate_password_hash(password)
 
             # Create a new user
-            new_user = User(user_name=user_name, user_password=hashed_password, contact_number=contact_number)
+            new_user = User(
+                user_name=user_name,
+                user_password=hashed_password,
+                contact_number=contact_number,
+            )
 
             # Add the user to the database
             db.session.add(new_user)
@@ -153,13 +172,15 @@ def register():
             return jsonify({"error": "Something Went Wrong."}), 500
     except SQLAlchemyError as e:
         db.session.rollback()  # Rollback in case of any error
-        return jsonify({"error": "Database error occurred while registering user."}), 500
+        return (
+            jsonify({"error": "Database error occurred while registering user."}),
+            500,
+        )
     except Exception as e:
         return jsonify({"error": "An error occurred during registration."}), 500
 
 
-
-@auth_bp.route('/generate_firebase_token', methods=['POST'])
+@auth_bp.route("/generate_firebase_token", methods=["POST"])
 @log_request
 @log_response
 @handle_exception
@@ -216,7 +237,7 @@ def generate_firebase_token():
               example: "An internal error occurred. Please try again later."
     """
     data = request.get_json()
-    contact_number = data.get('contact_number')
+    contact_number = data.get("contact_number")
 
     if not contact_number:
         return jsonify({"error": "Contact number is required."}), 400
@@ -237,7 +258,8 @@ def generate_firebase_token():
 
 # Login route
 
-@auth_bp.route('/login', methods=['POST'])
+
+@auth_bp.route("/login", methods=["POST"])
 @log_request
 @log_response
 @handle_exception
@@ -275,11 +297,10 @@ def login():
 
     """
     try:
-
         # Get JSON data from the request
         data = request.get_json()
-        contact_number = data.get('contact_number')
-        password = data.get('password')
+        contact_number = data.get("contact_number")
+        password = data.get("password")
         # Query the database for the user
         user = db.session.query(User).filter_by(contact_number=contact_number).first()
 
@@ -291,16 +312,19 @@ def login():
             return jsonify({"error": "Invalid password, Please try again!"}), 401
 
         # Generate JWT token for the user
-        token = encode_jwt(user)  # You might want to include user ID or other info in the token
+        token = encode_jwt(
+            user
+        )  # You might want to include user ID or other info in the token
         return jsonify({"message": "Login successful!", "token": token}), 200
 
-
     except SQLAlchemyError as e:
-
         return jsonify({"error": "Database error occurred while login user."}), 500
 
     except Exception as e:
-        return jsonify({"error": f"Something went wrong, {e} {traceback.print_exc()}"}), 500
+        return (
+            jsonify({"error": f"Something went wrong, {e} {traceback.print_exc()}"}),
+            500,
+        )
 
 
 def is_otp_verified(contact_number):
@@ -309,76 +333,78 @@ def is_otp_verified(contact_number):
     return True  # Placeholder; replace with actual verification logic
 
 
-@auth_bp.route('/generate_jwt_token', methods=['POST'])
+@auth_bp.route("/generate_jwt_token", methods=["POST"])
 @log_request
 @log_response
 def generate_jwt_token():
     """
-        Generate a JWT custom token for a user.
+    Generate a JWT custom token for a user.
 
-        ---
-        tags:
-            - Authentication
-        summary: "Generate JWT token"
-        description: "This endpoint generates a JWT custom token for a user after login."
-        consumes:
-          - application/json
-        produces:
-          - application/json
-        parameters:
-          - in: body
-            name: body
-            required: true
-            description: JSON payload containing user details.
-            schema:
-              type: object
-              required:
-                - contact_number
-              properties:
-                contact_number:
-                  type: string
-                  description: "The user's contact number."
-        responses:
-          200:
-            description: "Token generated successfully."
-            schema:
-              type: object
-              properties:
-                token:
-                  type: string
-                  description: "JWT custom token."
-          400:
-            description: "Missing required fields or OTP not verified."
-            schema:
-              type: object
-              properties:
-                error:
-                  type: string
-                  example: "OTP not verified or invalid contact number."
-          500:
-            description: "Internal server error."
-            schema:
-              type: object
-              properties:
-                error:
-                  type: string
-                  example: "An internal error occurred. Please try again later."
-        """
+    ---
+    tags:
+        - Authentication
+    summary: "Generate JWT token"
+    description: "This endpoint generates a JWT custom token for a user after login."
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: JSON payload containing user details.
+        schema:
+          type: object
+          required:
+            - contact_number
+          properties:
+            contact_number:
+              type: string
+              description: "The user's contact number."
+    responses:
+      200:
+        description: "Token generated successfully."
+        schema:
+          type: object
+          properties:
+            token:
+              type: string
+              description: "JWT custom token."
+      400:
+        description: "Missing required fields or OTP not verified."
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "OTP not verified or invalid contact number."
+      500:
+        description: "Internal server error."
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "An internal error occurred. Please try again later."
+    """
     data = request.get_json()
-    print("data",data)
-    contact_number = data.get('contact_number')
+    print("data", data)
+    contact_number = data.get("contact_number")
     if not contact_number or not isinstance(contact_number, str):
-        return jsonify({"error": "Contact number is required and must be a string."}), 400
+        return (
+            jsonify({"error": "Contact number is required and must be a string."}),
+            400,
+        )
 
     try:
-
         payload = {
-            'sub': contact_number,  # This will act as the identity (subject) claim
-            'exp': datetime.utcnow() + timedelta(days=1)  # Token expires in 1 day
+            "sub": contact_number,  # This will act as the identity (subject) claim
+            "exp": datetime.utcnow() + timedelta(days=1),  # Token expires in 1 day
         }
 
         # Encode the payload into a JWT using the secret key
-        encoded_token = jwt.encode(payload,secret_key, algorithm='HS256')
+        encoded_token = jwt.encode(payload, secret_key, algorithm="HS256")
 
         return jsonify({"token": encoded_token}), 200
 
@@ -386,79 +412,83 @@ def generate_jwt_token():
         return jsonify({"error": str(e)}), 500
 
 
-
 @log_response
-@auth_bp.route('/protected', methods=['POST'])
+@auth_bp.route("/protected", methods=["POST"])
 @jwt_required_with_contact_validation
 def protected():
     """
-        Validate JWT and contact number.
+    Validate JWT and contact number.
 
-        ---
-        tags:
-          - Protected
-        summary: "Access protected route"
-        description: "This endpoint allows access only to users with a valid JWT token and a matching contact number in the request body."
-        consumes:
-          - application/json
-        produces:
-          - application/json
-        parameters:
-          - in: header
-            name: Authorization
-            required: true
-            description: "JWT Token in Bearer format"
-            schema:
+    ---
+    tags:
+      - Protected
+    summary: "Access protected route"
+    description: "This endpoint allows access only to users with a valid JWT token and a matching contact number in the request body."
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    parameters:
+      - in: header
+        name: Authorization
+        required: true
+        description: "JWT Token in Bearer format"
+        schema:
+          type: string
+      - in: body
+        name: body
+        description: JSON payload with contact number.
+        schema:
+          type: object
+          required:
+            - contact_number
+          properties:
+            contact_number:
               type: string
-          - in: body
-            name: body
-            description: JSON payload with contact number.
-            schema:
+              description: "User's contact number"
+            other_data:
+              type: string
+              description: "Additional data"
+    responses:
+      200:
+        description: "Protected route access granted"
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+            contact_number:
+              type: string
+            data:
               type: object
-              required:
-                - contact_number
-              properties:
-                contact_number:
-                  type: string
-                  description: "User's contact number"
-                other_data:
-                  type: string
-                  description: "Additional data"
-        responses:
-          200:
-            description: "Protected route access granted"
-            schema:
-              type: object
-              properties:
-                message:
-                  type: string
-                contact_number:
-                  type: string
-                data:
-                  type: object
-          401:
-            description: "Invalid token or contact number mismatch"
-            schema:
-              type: object
-              properties:
-                error:
-                  type: string
-                  example: "Invalid contact number"
-          500:
-            description: "Internal server error"
-            schema:
-              type: object
-              properties:
-                error:
-                  type: string
-                  example: "An internal error occurred."
-        """
+      401:
+        description: "Invalid token or contact number mismatch"
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Invalid contact number"
+      500:
+        description: "Internal server error"
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "An internal error occurred."
+    """
     jwt_contact_number = get_jwt_identity()  # The contact number from the JWT
     data = request.get_json()  # The request body
     # Additional logic to process the request
 
-    return jsonify({
-        "message": "Protected route access granted",
-        "contact_number": jwt_contact_number,
-        "data": data
-    }), 200
+    return (
+        jsonify(
+            {
+                "message": "Protected route access granted",
+                "contact_number": jwt_contact_number,
+                "data": data,
+            }
+        ),
+        200,
+    )

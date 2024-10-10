@@ -10,33 +10,49 @@ from src.models.order_details import OrderDetails
 def add_order(data):
     try:
         new_order = OrderDetails(
-            user_contact_number=data['user_contact_number'],
-            name_of_customer=data['name_of_customer'],
-            materials=data['materials'],
-            model=data['model'],  # Make sure 'model' is also included in the properties
-            ordered_quantity=data['ordered_quantity'],
-            order_to=data['order_to'],
-            order_date=data.get('order_date'),  # Using get to avoid KeyError if not provided
-            received_date=data.get('received_date'),  # Using get to avoid KeyError if not provided
-            pending_quantity=data['pending_quantity']
+            user_contact_number=data["user_contact_number"],
+            name_of_customer=data["name_of_customer"],
+            materials=data["materials"],
+            model=data["model"],  # Make sure 'model' is also included in the properties
+            ordered_quantity=data["ordered_quantity"],
+            order_to=data["order_to"],
+            order_date=data.get(
+                "order_date"
+            ),  # Using get to avoid KeyError if not provided
+            received_date=data.get(
+                "received_date"
+            ),  # Using get to avoid KeyError if not provided
+            pending_quantity=data["pending_quantity"],
         )
 
         db.session.add(new_order)
         db.session.commit()
-        return jsonify({"message": "Order added successfully!", "order_id": new_order.order_id}), 201
+        return (
+            jsonify(
+                {"message": "Order added successfully!", "order_id": new_order.order_id}
+            ),
+            201,
+        )
     except Exception as ex:
         print("Adding new oder failed! ", {traceback.print_exc()})
-        return jsonify({"message": "Adding new oder failed!", "order_id": new_order.order_id}), 500
+        return (
+            jsonify(
+                {"message": "Adding new oder failed!", "order_id": new_order.order_id}
+            ),
+            500,
+        )
 
 
 def get_orders_by_user(contact_number):
     try:
-
         orders = OrderDetails.query.filter_by(user_contact_number=contact_number).all()
 
         # Convert result into a list of dictionaries
         order_list = [
-            {column.name: getattr(order, column.name, None) for column in order.__table__.columns}
+            {
+                column.name: getattr(order, column.name, None)
+                for column in order.__table__.columns
+            }
             for order in orders
         ]
 
@@ -49,7 +65,6 @@ def get_orders_by_user(contact_number):
 
 def show_all_orders():
     try:
-
         orders = OrderDetails.query.all()
         print("type", type(orders))
         print("order details", orders[0])
@@ -92,7 +107,11 @@ def update_order(order_id, order_status, pending_quantity):
     print(order)
     db.session.commit()
 
-    return jsonify({"message": "Order updated successfully!", "order_id": order_id}), 201
+    return (
+        jsonify({"message": "Order updated successfully!", "order_id": order_id}),
+        201,
+    )
+
 
 def add_dynamic_order(data):
     # Reflect the latest metadata to capture newly added columns
@@ -100,19 +119,17 @@ def add_dynamic_order(data):
 
     db.metadata.reflect(bind=db.engine, only=[OrderDetails.__tablename__])
 
-
-
     # Handle known fields using ORM
     static_order_data = {
-        'user_contact_number': data['user_contact_number'],
-        'name_of_customer': data['name_of_customer'],
-        'materials': data['materials'],
-        'model': data['model'],
-        'ordered_quantity': data['ordered_quantity'],
-        'order_to': data['order_to'],
-        'order_date': data.get('order_date'),
-        'received_date': data.get('received_date'),
-        'pending_quantity': data['pending_quantity']
+        "user_contact_number": data["user_contact_number"],
+        "name_of_customer": data["name_of_customer"],
+        "materials": data["materials"],
+        "model": data["model"],
+        "ordered_quantity": data["ordered_quantity"],
+        "order_to": data["order_to"],
+        "order_date": data.get("order_date"),
+        "received_date": data.get("received_date"),
+        "pending_quantity": data["pending_quantity"],
     }
 
     # Create the ORM object for known fields
@@ -125,7 +142,9 @@ def add_dynamic_order(data):
     inspector = inspect(db.engine)
 
     # Get all columns for the order_details table
-    order_details_columns = [column['name'] for column in inspector.get_columns('order_details')]
+    order_details_columns = [
+        column["name"] for column in inspector.get_columns("order_details")
+    ]
 
     for column in order_details_columns:
         print(column)
@@ -133,16 +152,19 @@ def add_dynamic_order(data):
             print("Is in dynamic")
             dynamic_order_data[column] = data[column]
 
-
-
     if dynamic_order_data:
         # Generate the update query for dynamic columns
-        set_clause = ', '.join([f"{key} = :{key}" for key in dynamic_order_data.keys()])
+        set_clause = ", ".join([f"{key} = :{key}" for key in dynamic_order_data.keys()])
         query = f"UPDATE {OrderDetails.__tablename__} SET {set_clause} WHERE order_id = :order_id"
-        dynamic_order_data['order_id'] = new_order.order_id
+        dynamic_order_data["order_id"] = new_order.order_id
 
         # Execute raw SQL to update dynamic columns
         print(query)
         db.session.execute(text(query), dynamic_order_data)
         db.session.commit()
-    return jsonify({"message": "Order added successfully", "order_id": new_order.order_id}), 201
+    return (
+        jsonify(
+            {"message": "Order added successfully", "order_id": new_order.order_id}
+        ),
+        201,
+    )
