@@ -9,4 +9,4 @@ class Materials(db.Model):
     description = db.Column(db.String(500))
 
     def __repr__(self):
-        return f"<Material {self.material_id}: {self.material_name}>"
+        return f"<Materials {self.material_id}: {self.material_name}>"

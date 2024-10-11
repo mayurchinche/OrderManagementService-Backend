@@ -11,4 +11,4 @@ class Suppliers(db.Model):
     delivery_accuracy = db.Column(db.Float)  # Percentage of successful deliveries
 
     def __repr__(self):
-        return f"<Supplier {self.supplier_id}: {self.supplier_name}>"
+        return f"<Suppliers {self.supplier_id}: {self.supplier_name}>"
