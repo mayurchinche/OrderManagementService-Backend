@@ -9,10 +9,12 @@ from src.exception import global_exception_handler
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from .db.db import  db
-from src.models import users,order_details
+from src.models import users,order_details,suppliers,materials,reversal_order
 from src.oms.routes import order_bp
 from .logging.logging_handler import log_request, log_response
 from flask_jwt_extended import JWTManager
+
+
 
 load_dotenv()
 def create_app():
@@ -30,9 +32,10 @@ def create_app():
     app.register_blueprint(main_routes, url_prefix='/src')
 
     from .oms.routes import order_bp
-
     app.register_blueprint(order_bp)
 
+    from .resources import material_blueprint
+    app.register_blueprint(material_blueprint, url_prefix='/api')
 
     with app.app_context():
             # Create tables if they do not exist

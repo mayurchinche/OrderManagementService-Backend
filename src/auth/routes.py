@@ -1,27 +1,24 @@
 import json
-import os
 import traceback
 from datetime import datetime, timedelta
 
 import jwt
-from flask import Blueprint, request, jsonify, Response
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
+from firebase_admin import auth
+from flask import Blueprint
+from flask import request, jsonify
+from flask_jwt_extended import get_jwt_identity
 from sqlalchemy.exc import SQLAlchemyError
-
-from src.auth.services import register_user, login_user
-
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from src.db.db import db
+from src.exception.global_exception_handler import handle_exception
+from src.firebase import service as firebase_service
 from src.logging.logging_handler import log_request, log_response
 from src.models.users import User
-from src.db.db import db
-from src.sequrity.decorators import custom_jwt_required, jwt_required_with_contact_validation
+from src.sequrity.decorators import jwt_required_with_contact_validation
 from src.sequrity.jwt_handler import encode_jwt
-from src.exception.global_exception_handler import handle_exception
-from flask import request, jsonify
-from firebase_admin import auth
-from src.firebase import service as firebase_service
 from src.sequrity.jwt_handler import secret_key
+
 auth_bp = Blueprint('auth', __name__)
 
 
@@ -156,7 +153,6 @@ def register():
         return jsonify({"error": "Database error occurred while registering user."}), 500
     except Exception as e:
         return jsonify({"error": "An error occurred during registration."}), 500
-
 
 
 @auth_bp.route('/generate_firebase_token', methods=['POST'])
@@ -365,26 +361,24 @@ def generate_jwt_token():
                   example: "An internal error occurred. Please try again later."
         """
     data = request.get_json()
-    print("data",data)
+    print("data", data)
     contact_number = data.get('contact_number')
     if not contact_number or not isinstance(contact_number, str):
         return jsonify({"error": "Contact number is required and must be a string."}), 400
 
     try:
 
-        payload = {
-            'sub': contact_number,  # This will act as the identity (subject) claim
+        payload = {'sub': contact_number,  # This will act as the identity (subject) claim
             'exp': datetime.utcnow() + timedelta(days=1)  # Token expires in 1 day
         }
 
         # Encode the payload into a JWT using the secret key
-        encoded_token = jwt.encode(payload,secret_key, algorithm='HS256')
+        encoded_token = jwt.encode(payload, secret_key, algorithm='HS256')
 
         return jsonify({"token": encoded_token}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 
 @log_response
@@ -457,8 +451,5 @@ def protected():
     data = request.get_json()  # The request body
     # Additional logic to process the request
 
-    return jsonify({
-        "message": "Protected route access granted",
-        "contact_number": jwt_contact_number,
-        "data": data
-    }), 200
+    return jsonify(
+        {"message": "Protected route access granted", "contact_number": jwt_contact_number, "data": data}), 200
