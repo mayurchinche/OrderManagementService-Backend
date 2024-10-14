@@ -38,6 +38,13 @@ def create_app():
     from .resources import suppliers_blueprint
     app.register_blueprint(suppliers_blueprint, url_prefix='/api')
 
+    from src.resources import reversal_orders_blueprint
+    app.register_blueprint(reversal_orders_blueprint, url_prefix='/api')
+
+    from src.resources import order_blueprint
+
+    app.register_blueprint(order_blueprint, url_prefix='/api')
+
     with app.app_context():
             # Create tables if they do not exist
             db.create_all()
