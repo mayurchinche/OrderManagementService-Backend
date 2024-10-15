@@ -166,3 +166,58 @@ class ManageOrderResource(Resource):
             order_id,
             data
         )
+
+class GetReviewPendingOrdersResource(Resource):
+    @staticmethod
+    def get():
+        """
+        Get Review Pending Orders
+        ---
+        tags:
+          - Manage Orders
+        responses:
+          200:
+            description: List of review pending orders
+        """
+        return OrderController.get_review_pending_orders()
+
+class ApproveOrderResource(Resource):
+    def put(self, order_id):
+        """
+        Approve Order
+        ---
+        tags:
+          - Manage Orders
+        operationId: put_api_approve_order
+        parameters:
+          - in: path
+            name: order_id
+            required: true
+            type: integer
+            description: ID of the order to approve
+          - in: body
+            name: body
+            schema:
+              type: object
+              required:
+                - order_quantity
+                - expected_price
+                - approved_by
+              properties:
+                order_quantity:
+                  type: integer
+                  description: Updated order quantity
+                expected_price:
+                  type: float
+                  description: Expected price for the order
+                approved_by:
+                  type: string
+                  description: Manager who approved the order
+        responses:
+          200:
+            description: Order approved successfully
+          404:
+            description: Order not found
+        """
+        data = request.get_json()
+        return OrderController.approve_order(order_id, data)
