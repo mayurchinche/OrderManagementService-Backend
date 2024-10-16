@@ -4,6 +4,20 @@ from src.models.order_details import OrderDetails
 
 class OrderService:
     @staticmethod
+    def get_orders(status=None, contact_number=None, limit=None, offset=None):
+        query = OrderDetails.query
+        if status and contact_number:
+            query = query.filter(OrderDetails.status == status, OrderDetails.user_contact_number == contact_number)
+        elif status:
+            query = query.filter(OrderDetails.status == status)
+        elif contact_number:
+            query = query.filter(OrderDetails.user_contact_number == contact_number)
+        if limit:
+            query = query.limit(limit)
+        if offset:
+            query = query.offset(offset)
+        return query.all()
+    @staticmethod
     def add_order(material_name, order_date, order_quantity, ordered_by,user_contact_number):
         new_order = OrderDetails(
             material_name=material_name,
@@ -17,15 +31,29 @@ class OrderService:
         return {"status": "success", "message": "Order added successfully!"}
 
     @staticmethod
-    def update_order(order_id, status, approved_by=None):
+    def update_order(order_id,data, status=None,po_no=None, approved_by=None):
         order = OrderDetails.query.get(order_id)
+        print("data",data)
         if not order:
             return {"status": "fail", "message": "Order not found!"}
-
-        order.status = status
-        if status == "Approved" and approved_by:
+        if not status:
+            status = order.status
+        # Review done move order to PO_PENDING
+        if status == OrderStatus.REVIEW_PENDING and approved_by:
             order.approved_by = approved_by
+            order.status = OrderStatus.PO_PENDING
 
+        # PO raised move to ORDER_PLACED
+        print("outside if", OrderStatus.PO_PENDING,order.status,data )
+        if order.status==OrderStatus.PO_PENDING and data:
+            print("Is in if")
+            order.po_no = data.get("po_no")
+            order.supplier_id = data.get("supplier_id")
+            order.ordered_price = data.get("ordered_price")
+            order.po_raised_by = data.get("po_raised_by")
+            order.status=OrderStatus.ORDER_PLACED
+
+        print(order.order_id, order.status)
         db.session.commit()
         return {"status": "success", "message": "Order updated successfully!"}
 

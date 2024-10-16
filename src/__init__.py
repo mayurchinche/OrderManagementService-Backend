@@ -45,6 +45,9 @@ def create_app():
 
     app.register_blueprint(order_blueprint, url_prefix='/api')
 
+    from src.core.routes import core_blueprint
+    app.register_blueprint(core_blueprint, url_prefix='/api/core')
+
     with app.app_context():
             # Create tables if they do not exist
             db.create_all()

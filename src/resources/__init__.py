@@ -1,8 +1,7 @@
 from flask import Blueprint
 from flask_restful import Api
 from src.resources.material_resource import MaterialResource
-from src.resources.order_resource import OrderResource, ManageOrderResource, GetReviewPendingOrdersResource, \
-    ApproveOrderResource
+from src.resources.order_resource import OrderResource
 from src.resources.reversal_order_resource import ReversalOrderResource
 from src.resources.supplier_resource import SupplierResource
 
@@ -36,5 +35,5 @@ order_api.add_resource(OrderResource, '/orders_v1')
 #
 
 # Registering the resources
-order_api.add_resource(GetReviewPendingOrdersResource, "/orders/review_pending",endpoint="get_review_pending_orders")
-order_api.add_resource(ApproveOrderResource, '/orders/<int:order_id>', endpoint="approve_order")
+# order_api.add_resource(GetReviewPendingOrdersResource, "/orders/review_pending",endpoint="get_review_pending_orders")
+# order_api.add_resource(ApproveOrderResource, '/orders/<int:order_id>', endpoint="approve_order")
