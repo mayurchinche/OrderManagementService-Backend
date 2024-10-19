@@ -18,7 +18,12 @@ class OrderService:
             query = query.offset(offset)
         return query.all()
     @staticmethod
-    def add_order(material_name, order_date, order_quantity, ordered_by,user_contact_number):
+    def add_order(data):
+        material_name = data['material_name'],
+        order_date = data['order_date']
+        order_quantity = data['order_quantity']
+        ordered_by = data['ordered_by']
+        user_contact_number = data['user_contact_number']
         new_order = OrderDetails(
             material_name=material_name,
             order_date=order_date,
@@ -50,7 +55,7 @@ class OrderService:
         elif order.status == OrderStatus.PO_PENDING and data:
             print("Is in if")
             order.po_no = data.get("po_no")
-            order.supplier_id = data.get("supplier_id")
+            order.supplier_name = data.get("supplier_name")
             order.ordered_price = data.get("ordered_price")
             order.po_raised_by = data.get("po_raised_by")
             order.status=OrderStatus.ORDER_PLACED

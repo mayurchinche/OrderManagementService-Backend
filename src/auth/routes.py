@@ -53,6 +53,7 @@ def register():
             - user_name
             - password
             - contact_number
+            - role
           properties:
             id_token:
               type: string
@@ -66,6 +67,10 @@ def register():
             contact_number:
               type: string
               description: "The user's contact number (phone number)."
+            role:
+              type: string
+              description: "The user's role."
+
     responses:
       200:
         description: "User registered successfully."
@@ -140,8 +145,9 @@ def register():
             hashed_password = generate_password_hash(password)
 
             # Create a new user
-            new_user = User(user_name=user_name, user_password=hashed_password, contact_number=contact_number)
+            new_user = User(user_name=user_name, user_password=hashed_password, contact_number=contact_number,role=role)
 
+            print("New User", new_user)
             # Add the user to the database
             db.session.add(new_user)
             db.session.commit()
@@ -149,6 +155,7 @@ def register():
         else:
             return jsonify({"error": "Something Went Wrong."}), 500
     except SQLAlchemyError as e:
+        print("SQLAlchemyError", traceback.print_exc())
         db.session.rollback()  # Rollback in case of any error
         return jsonify({"error": "Database error occurred while registering user."}), 500
     except Exception as e:

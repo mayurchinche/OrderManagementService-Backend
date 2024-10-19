@@ -3,20 +3,16 @@ from src.services.reversal_order_service import ReversalOrderService
 class ReversalOrderController:
     @staticmethod
     def add_reversal_order(data):
-        original_order_id=data.get('original_order_id')
-        faulty_quantity=data.get('faulty_quantity')
-        return ReversalOrderService.add_reversal_order(original_order_id, faulty_quantity)
+        return ReversalOrderService.add_reversal_order(data)
 
     @staticmethod
-    def update_reversal_status(data):
-        reversal_order_id=data.get('reversal_order_id')
-        status=data.get('status')
-        dc_status=data.get('dc_status')
-        return ReversalOrderService.update_reversal_status(reversal_order_id, status, dc_status)
+    def update_reversal_status(reversal_order_id=None,data=None):
+        return ReversalOrderService.update_reversal_status(reversal_order_id,data)
 
     @staticmethod
-    def get_all_reversal_orders():
-        return ReversalOrderService.get_all_reversal_orders()
+    def get_reversal_orders(status=None,user_contact_number=None):
+        reversal_orders= ReversalOrderService.get_reversal_orders(status,user_contact_number)
+        return {"data": [reversal_order.to_dict() for reversal_order in reversal_orders]},200
 
     @staticmethod
     def delete_reversal_order(data):

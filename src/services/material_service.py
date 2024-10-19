@@ -42,7 +42,7 @@ class MaterialService:
     @staticmethod
     def get_all_materials():
         materials = Materials.query.all()
-        return [{"material_id": mat.material_id, "material_name": mat.material_name, "description": mat.description} for mat in materials]
+        return [{"material_name": mat.material_name, "description": mat.description} for mat in materials]
 
     @staticmethod
     def add_material(material_name, description):

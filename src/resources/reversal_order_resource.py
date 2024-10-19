@@ -22,14 +22,38 @@ class ReversalOrderResource(Resource):
               type: object
               required:
                 - original_order_id
-                - faulty_quantity
+                - reversal_quantity
+                - origin_order_supplier_name
+                - original_order_quantity
+                - user_contact_number
+                - description
+                - created_at
+                - original_order_material_name
               properties:
                 original_order_id:
                   type: integer
                   description: ID of the original order
-                faulty_quantity:
+                reversal_quantity:
                   type: integer
                   description: Number of faulty items
+                origin_order_supplier_name:
+                  type: string
+                  description: Name of the supplier
+                original_order_quantity:
+                  type: integer
+                  description: Quantity of faulty items
+                user_contact_number:
+                  type: string
+                  description: Contact number of the user
+                description:
+                  type: string
+                  description: Description of the reversal
+                created_at:
+                  type: string
+                  description: Date of creation
+                original_order_material_name:
+                  type: string
+                  description: Name of the material
         responses:
           201:
             description: Reversal order added successfully
@@ -80,7 +104,7 @@ class ReversalOrderResource(Resource):
           200:
             description: List of all reversal orders
         """
-        return ReversalOrderController.get_all_reversal_orders()
+        return ReversalOrderController.get_reversal_orders()
 
     @staticmethod
     def delete():

@@ -11,8 +11,9 @@ class OrderController:
         except Exception as e:
             return {"message": f"Error fetching orders: {str(e)}"}, 500
     @staticmethod
-    def add_order(material_name, order_date, order_quantity, ordered_by, user_contact_number):
-        return OrderService.add_order(material_name, order_date, order_quantity, ordered_by,user_contact_number)
+    def add_order(data):
+
+        return OrderService.add_order(data)
 
     @staticmethod
     def update_order(order_id, status=None, data=None):

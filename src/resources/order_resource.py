@@ -85,13 +85,8 @@ class OrderResource(Resource):
             description: Order added successfully
         """
         data = request.get_json()
-        material_name = data.get("material_name")
-        order_date = data.get("order_date")
-        order_quantity = data.get("order_quantity")
-        ordered_by = data.get("ordered_by")
-        user_contact_number = data.get("user_contact_number")
 
-        return OrderController.add_order(material_name, order_date, order_quantity, ordered_by, user_contact_number)
+        return OrderController.add_order(data)
 
     @staticmethod
     def put():

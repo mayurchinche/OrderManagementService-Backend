@@ -16,5 +16,5 @@ class SupplierService:
     @staticmethod
     def get_all_suppliers():
         suppliers = Suppliers.query.all()
-        return [{"supplier_id": sup.supplier_id, "supplier_name": sup.supplier_name, "contact_number": sup.contact_number} for
+        return [{"supplier_name": sup.supplier_name, "contact_number": sup.contact_number} for
                 sup in suppliers]

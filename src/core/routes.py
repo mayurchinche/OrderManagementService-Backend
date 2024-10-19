@@ -1,9 +1,59 @@
 from flask import Blueprint, request
+
+from src.constants.order_status import OrderStatus
+from src.core.services import reversal_order_service
 from src.core.services.order_service import OrderService
 from src.core.services.approval_service import ApprovalService
 from src.core.services.po_service import POService
+from src.core.services.reversal_order_service import ReversalOrderService
 
 core_blueprint = Blueprint('core', __name__)
+
+
+@core_blueprint.route("/orders/add_order", methods=['POST'])
+def add_order():
+    """
+    Add Order
+    ---
+    tags:
+      - Employee Resource
+    parameters:
+      - in: body
+        name: body
+        schema:
+          type: object
+          required:
+            - material_name
+            - order_date
+            - order_quantity
+            - ordered_by
+            - user_contact_number
+          properties:
+            material_name:
+              type: string
+              description: Name of the material
+            order_date:
+              type: string
+              description: Date when the order is placed
+            order_quantity:
+              type: integer
+              description: Quantity of the material
+            ordered_by:
+              type: string
+              description: Name of the person who ordered
+            user_contact_number:
+              type: string
+              description: contact_number of the person who ordered
+
+    responses:
+      201:
+        description: Order added successfully
+    """
+    data = request.get_json()
+
+
+    return OrderService.add_order(data)
+
 
 @core_blueprint.route("/orders/ordered_by/<string:contact_number>", methods=['GET'])
 def get_employee_orders(contact_number):
@@ -23,6 +73,7 @@ def get_employee_orders(contact_number):
         description: List of all orders
     """
     return OrderService.fetch_employee_orders(contact_number)
+
 
 @core_blueprint.route("/orders/get_all_orders", methods=['GET'])
 def get_all_orders():
@@ -71,6 +122,7 @@ def get_delivery_pending_orders():
     """
     return OrderService.fetch_delivery_pending_orders()
 
+
 @core_blueprint.route("/orders/raise_po/<int:order_id>", methods=['POST'])
 def raise_po(order_id):
     """
@@ -90,28 +142,29 @@ def raise_po(order_id):
           type: object
           required:
             - po_no
-            - supplier_id
             - ordered_price
             - po_raised_by
+            - supplier_name
           properties:
             po_no:
               type: integer
               description: purchase order number
-            supplier_id:
-              type: integer
-              description: Supplier ID
             ordered_price:
               type: float
               description: Ordered price
             po_raised_by:
               type: string
               description: PO Team member who raised the PO
+            supplier_name:
+              type: string
+              description: Name of the supplier
     responses:
       200:
         description: List of all orders
     """
-    data=request.get_json()
-    return POService.raise_po(order_id,data)
+    data = request.get_json()
+    return POService.raise_po(order_id, data)
+
 
 @core_blueprint.route("/orders/delivery/<int:order_id>", methods=['PUT'])
 def mark_order_delivered(order_id):
@@ -126,7 +179,6 @@ def mark_order_delivered(order_id):
         required: true
         type: integer
         description: ID of the order to mark as delivered
-
       - in : body
         name: received_date
         schema:
@@ -137,14 +189,15 @@ def mark_order_delivered(order_id):
             received_date:
               type: string
               description: Date when the order was delivered
+
     responses:
       200:
         description: Order marked as delivered
       404:
         description: Order not found
     """
-    data=request.get_json()
-    return POService.update_order_delivery(order_id,data)
+    data = request.get_json()
+    return POService.update_order_delivery(order_id, data)
 
 
 @core_blueprint.route("/orders/approve/<int:order_id>", methods=['PUT'])
@@ -186,7 +239,7 @@ def approve_order(order_id):
         description: Order not found
     """
     data = request.get_json()
-    return ApprovalService.approve_order( order_id, data)
+    return ApprovalService.approve_order(order_id, data)
 
 
 @core_blueprint.route("/orders/review_pending", methods=['GET'])
@@ -201,3 +254,227 @@ def get_review_pending_orders():
         description: List of review pending orders
     """
     return ApprovalService.get_review_pending_orders()
+
+@core_blueprint.route("/orders/add_reversal_order", methods=['POST'])
+def add_reversal_order():
+    """
+    Add Reversal Order
+    ---
+    tags:
+      - Employee Resource
+    parameters:
+      - in: body
+        name: body
+        schema:
+          type: object
+          required:
+            - original_order_id
+            - reversal_quantity
+            - origin_order_supplier_name
+            - original_order_quantity
+            - user_contact_number
+            - description
+            - created_at
+            - original_order_material_name
+          properties:
+            original_order_id:
+              type: integer
+              description: ID of the original order
+            reversal_quantity:
+              type: integer
+              description: Number of faulty items
+            origin_order_supplier_name:
+              type: string
+              description: Name of the supplier
+            original_order_quantity:
+              type: integer
+              description: Quantity of faulty items
+            user_contact_number:
+              type: string
+              description: Contact number of the user
+            description:
+              type: string
+              description: Description of the reversal
+            created_at:
+              type: string
+              description: Date of creation
+            original_order_material_name:
+              type: string
+              description: Name of the material
+    responses:
+      201:
+        description: Reversal order added successfully
+    """
+
+    data = request.get_json()
+    return ReversalOrderService.add_reversal_order(data)
+
+
+@core_blueprint.route("/orders/reversal/get_all_reversal_orders", methods=['GET'])
+def get_all_reversal_orders():
+    """
+    Get Reversal Orders
+    ---
+    tags:
+      -  Manager Resource
+    responses:
+      200:
+        description: List of reversal orders
+    """
+    return ReversalOrderService.get_reversal_orders()
+@core_blueprint.route("/orders/reversal/get_reversal_orders/<string:user_contact_number>", methods=['GET'])
+def get_reversal_order_by_user(user_contact_number):
+    """
+    Get Reversal Orders For Logged-In User
+    ---
+    tags:
+      - Employee Resource
+    parameters:
+      - in: path
+        name: user_contact_number
+        required: true
+        type: string
+        description: user_contact_number
+    responses:
+      200:
+        description: List of reversal orders
+    """
+    return ReversalOrderService.get_reversal_orders(user_contact_number=user_contact_number)
+
+
+
+@core_blueprint.route("/orders/reversal/approve_reversal_order/<int:reversal_order_id>", methods=['PUT'])
+def approve_reversal_order(reversal_order_id):
+    """
+    Approve Order
+    ---
+    tags:
+      - Manage Orders
+    operationId: put_api_approve_reversal_order
+    parameters:
+      - in: path
+        name: reversal_order_id
+        required: true
+        type: integer
+        description: ID of the reversal order to approve
+    responses:
+      200:
+        description: Reversal Order approved successfully
+      404:
+        description: Reversal Order not found
+    """
+
+    data={
+        "status":OrderStatus.DC_PENDING
+    }
+    return ReversalOrderService.update_reversal_status(reversal_order_id,data)
+
+@core_blueprint.route("/orders/reversal/get_reversal_review_pending", methods=['GET'])
+def get_reversal_review_pending_orders():
+    """
+    Get Review Pending Orders
+    ---
+    tags:
+      - Manage Orders
+    responses:
+      200:
+        description: List of review pending orders
+    """
+    return ReversalOrderService.get_reversal_orders(status=OrderStatus.REVERSAL_REVIEW_PENDING)
+
+@core_blueprint.route("/orders/reversal/get_dc_pending", methods=['GET'])
+def get_dc_pending_orders():
+    """
+    Get DC Pending Orders
+    ---
+    tags:
+      - PO Resource
+    responses:
+      200:
+        description: List of DC pending orders
+    """
+    return ReversalOrderService.get_reversal_orders(status=OrderStatus.DC_PENDING)
+
+
+
+@core_blueprint.route("/orders/reversal/submit_dc_for_reversal/<int:reversal_order_id>", methods=['PUT'])
+def submit_dc_for_reversal(reversal_order_id):
+    """
+    Raise Delivery Chalan
+    ---
+    tags:
+      - PO Resource
+    parameters:
+      - in: path
+        name: reversal_order_id
+        required: true
+        type: integer
+        description: ID of the reversal order to Submit Delivery Chalan
+      - in: body
+        name: body
+        schema:
+          type: object
+          required:
+            - dc_number
+          properties:
+            dc_number:
+              type: string
+              description: Delivery Chalan Number
+    responses:
+      200:
+        description: Submit Dc for Reversal Order
+    """
+    data={
+    "status" : OrderStatus.REVERSAL_ORDER_PLACED,
+    "dc_number" : request.get_json().get('dc_number')
+    }
+    return ReversalOrderService.update_reversal_status(reversal_order_id=reversal_order_id,data=data)
+
+@core_blueprint.route("/orders/reversal/get_reversal_delivery_pending_orders", methods=['GET'])
+def get_reversal_delivery_pending_orders():
+    """
+    Get Reversal Delivery Pending Orders
+    ---
+    tags:
+      - PO Resource
+    responses:
+      200:
+        description: List of Reversal Delivery pending orders
+    """
+    return ReversalOrderService.get_reversal_orders(status=OrderStatus.REVERSAL_ORDER_PLACED)
+
+@core_blueprint.route("/orders/revrsal/delivery/<int:reversal_order_id>", methods=['PUT'])
+def mark_reversal_order_delivered(reversal_order_id):
+    """
+    Mark Reversal Order as Delivered
+    ---
+    tags:
+      - PO Resource
+    parameters:
+      - in: path
+        name: reversal_order_id
+        required: true
+        type: integer
+        description: ID of the order to mark as delivered
+      - in : body
+        name: delivered_at
+        schema:
+          type: object
+          required:
+            - delivered_at
+          properties:
+            delivered_at:
+              type: string
+              description: Date when the reversal order was delivered
+
+    responses:
+      200:
+        description: Reversal Order marked as delivered
+      404:
+        description: Order not found
+    """
+    data = request.get_json()
+    data["status"] = OrderStatus.REVERSAL_ORDER_DELIVERED
+
+    return ReversalOrderService.update_reversal_status(reversal_order_id, data)
+
