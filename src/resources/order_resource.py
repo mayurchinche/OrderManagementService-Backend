@@ -124,10 +124,7 @@ class OrderResource(Resource):
         """
         data = request.get_json()
         order_id = data.get("order_id")
-        status = data.get("status")
-        approved_by = data.get("approved_by")
-
-        return OrderController.update_order(order_id, status, approved_by)
+        return OrderController.update_order(order_id, data)
 
     @staticmethod
     def delete():

@@ -115,7 +115,36 @@ def raise_po(order_id):
 
 @core_blueprint.route("/orders/delivery/<int:order_id>", methods=['PUT'])
 def mark_order_delivered(order_id):
-    return POService.update_order_delivery(order_id)
+    """
+    Mark Order as Delivered
+    ---
+    tags:
+      - PO Resource
+    parameters:
+      - in: path
+        name: order_id
+        required: true
+        type: integer
+        description: ID of the order to mark as delivered
+
+      - in : body
+        name: received_date
+        schema:
+          type: object
+          required:
+            - received_date
+          properties:
+            received_date:
+              type: string
+              description: Date when the order was delivered
+    responses:
+      200:
+        description: Order marked as delivered
+      404:
+        description: Order not found
+    """
+    data=request.get_json()
+    return POService.update_order_delivery(order_id,data)
 
 
 @core_blueprint.route("/orders/approve/<int:order_id>", methods=['PUT'])

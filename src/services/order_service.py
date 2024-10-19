@@ -31,21 +31,23 @@ class OrderService:
         return {"status": "success", "message": "Order added successfully!"}
 
     @staticmethod
-    def update_order(order_id,data, status=None,po_no=None, approved_by=None):
+    def update_order(order_id, data=None, status=None):
         order = OrderDetails.query.get(order_id)
         print("data",data)
+        print("status",status)
         if not order:
             return {"status": "fail", "message": "Order not found!"}
         if not status:
             status = order.status
         # Review done move order to PO_PENDING
-        if status == OrderStatus.REVIEW_PENDING and approved_by:
-            order.approved_by = approved_by
+        if order.status == OrderStatus.REVIEW_PENDING and data:
+            order.expected_price = data.get("expected_price")
+            order.approved_by = data.get("approved_by")
+            order.order_quantity = data.get("order_quantity")
             order.status = OrderStatus.PO_PENDING
 
-        # PO raised move to ORDER_PLACED
-        print("outside if", OrderStatus.PO_PENDING,order.status,data )
-        if order.status==OrderStatus.PO_PENDING and data:
+        # PO_PENDING move to PO_RAISED
+        elif order.status == OrderStatus.PO_PENDING and data:
             print("Is in if")
             order.po_no = data.get("po_no")
             order.supplier_id = data.get("supplier_id")
@@ -53,6 +55,14 @@ class OrderService:
             order.po_raised_by = data.get("po_raised_by")
             order.status=OrderStatus.ORDER_PLACED
 
+        # PO_RAISED move to DELIVERED
+        elif order.status == OrderStatus.ORDER_PLACED:
+            print("Is in elif")
+            order.received_date =data.get("received_date")
+            order.status = status
+        else:
+            var = {"status": "Failed", "message": f"Order is already in {order.status}!"}
+            return var
         print(order.order_id, order.status)
         db.session.commit()
         return {"status": "success", "message": "Order updated successfully!"}

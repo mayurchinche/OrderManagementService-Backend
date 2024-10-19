@@ -15,8 +15,8 @@ class OrderController:
         return OrderService.add_order(material_name, order_date, order_quantity, ordered_by,user_contact_number)
 
     @staticmethod
-    def update_order(order_id, status=None,po_no=None,data=None, approved_by=None):
-        return OrderService.update_order(order_id, approved_by)
+    def update_order(order_id, status=None, data=None):
+        return OrderService.update_order(order_id, data, status)
 
     @staticmethod
     def delete_order(order_id):

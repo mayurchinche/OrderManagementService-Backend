@@ -1,3 +1,4 @@
+from src.constants.order_status import OrderStatus
 from src.controllers.order_controller import OrderController
 
 
@@ -10,5 +11,5 @@ class ApprovalService:
     @staticmethod
     def get_review_pending_orders():
         # Get all orders with Review_Pending status
-        return OrderController.get_review_pending_orders()
+        return OrderController.get_all_orders(status=OrderStatus.REVIEW_PENDING)
 
