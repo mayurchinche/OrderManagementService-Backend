@@ -274,8 +274,6 @@ def login():
                 description: User not found, Please Sign up First !
               500:
                 description: Database error occurred while login user. OR Somthing went wrong
-
-
     """
     try:
 
@@ -285,7 +283,7 @@ def login():
         password = data.get('password')
         # Query the database for the user
         user = db.session.query(User).filter_by(contact_number=contact_number).first()
-
+        role=user.role
         if user is None:
             # user not found
             return jsonify({"error": "User not found, Please Sign up First !"}), 404
@@ -295,7 +293,7 @@ def login():
 
         # Generate JWT token for the user
         token = encode_jwt(user)  # You might want to include user ID or other info in the token
-        return jsonify({"message": "Login successful!", "token": token}), 200
+        return jsonify({"message": "Login successful!", "token": token, "role": role}), 200
 
 
     except SQLAlchemyError as e:
