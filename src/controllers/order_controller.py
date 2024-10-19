@@ -22,18 +22,18 @@ class OrderController:
     def delete_order(order_id):
         return OrderService.delete_order(order_id)
 
-    # @staticmethod
-    # def get_review_pending_orders():
-    #     try:
-    #         orders = OrderService.get_review_pending_orders()
-    #         return {"status": "success", "data": orders}, 200
-    #     except Exception as e:
-    #         return {"status": "fail", "message": str(e)}, 500
-    #
-    # @staticmethod
-    # def approve_order(order_id,data):
-    #     response, status_code = OrderService.approve_order(order_id, data)
-    #     return response, status_code
+    @staticmethod
+    def get_review_pending_orders():
+        try:
+            orders = OrderService.get_review_pending_orders()
+            return {"status": "success", "data": orders}, 200
+        except Exception as e:
+            return {"status": "fail", "message": str(e)}, 500
+
+    @staticmethod
+    def approve_order(order_id,data):
+        response, status_code = OrderService.approve_order(order_id, data)
+        return response, status_code
 
     @staticmethod
     def raise_po(order_id,data):
