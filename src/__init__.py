@@ -9,7 +9,7 @@ from src.exception import global_exception_handler
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from .db.db import  db
-from src.models import users,order_details,suppliers,materials,reversal_order
+from src.models import users,order_details,suppliers,materials,reversal_order,modules,material_modules
 from src.oms.routes import order_bp
 from .logging.logging_handler import log_request, log_response
 from flask_jwt_extended import JWTManager
@@ -47,6 +47,9 @@ def create_app():
 
     from src.core.routes import core_blueprint
     app.register_blueprint(core_blueprint, url_prefix='/api/core')
+
+    from src.resources.module import module_bp
+    app.register_blueprint(module_bp, url_prefix="/api")
 
     with app.app_context():
             # Create tables if they do not exist
