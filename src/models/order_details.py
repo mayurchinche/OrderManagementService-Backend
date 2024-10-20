@@ -1,4 +1,6 @@
 from datetime import datetime
+from email.policy import default
+
 from src.db.db import db
 
 class OrderDetails(db.Model):
@@ -14,7 +16,7 @@ class OrderDetails(db.Model):
     order_quantity = db.Column(db.Integer, nullable=False, default=0)
     order_to = db.Column(db.String(100), nullable=False, default='None')
     received_date = db.Column(db.String(100), nullable=True, default='None')
-    pending_quantity = db.Column(db.Integer, nullable=True)
+    pending_quantity = db.Column(db.Integer, nullable=True,default=order_quantity)
     ordered_by = db.Column(db.String(50), nullable=False, default='None')
     approved_by = db.Column(db.String(50), nullable=True, default='None')
     po_raised_by = db.Column(db.String(50), nullable=True, default='None')

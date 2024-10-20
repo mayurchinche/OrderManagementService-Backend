@@ -5,6 +5,7 @@ class OrderStatus:
     REVIEW_PENDING = "Review_Pending"
     PO_PENDING = "PO_Pending"
     ORDER_PLACED = "Order_Placed"
+    PARTIALLY_DELIVERED = "Partially_Delivered"
     ORDER_DELIVERED = "Order_Delivered"
 
     # Reversal order statuses

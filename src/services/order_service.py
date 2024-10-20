@@ -6,7 +6,11 @@ class OrderService:
     @staticmethod
     def get_orders(status=None, contact_number=None, limit=None, offset=None):
         query = OrderDetails.query
-        if status and contact_number:
+
+        if isinstance(status, (tuple, list)):
+            # Apply the filter using the .in_ method to match any of the statuses
+            query = query.filter(OrderDetails.status.in_(status))
+        elif status and contact_number:
             query = query.filter(OrderDetails.status == status, OrderDetails.user_contact_number == contact_number)
         elif status:
             query = query.filter(OrderDetails.status == status)
@@ -38,22 +42,19 @@ class OrderService:
     @staticmethod
     def update_order(order_id, data=None, status=None):
         order = OrderDetails.query.get(order_id)
-        print("data",data)
-        print("status",status)
         if not order:
             return {"status": "fail", "message": "Order not found!"}
         if not status:
             status = order.status
         # Review done move order to PO_PENDING
-        if order.status == OrderStatus.REVIEW_PENDING and data:
+        if order.status == OrderStatus.REVIEW_PENDING and data["status"]==OrderStatus.PO_PENDING:
             order.expected_price = data.get("expected_price")
             order.approved_by = data.get("approved_by")
             order.order_quantity = data.get("order_quantity")
             order.status = OrderStatus.PO_PENDING
 
         # PO_PENDING move to PO_RAISED
-        elif order.status == OrderStatus.PO_PENDING and data:
-            print("Is in if")
+        elif order.status == OrderStatus.PO_PENDING and data["status"]==OrderStatus.ORDER_PLACED:
             order.po_no = data.get("po_no")
             order.supplier_name = data.get("supplier_name")
             order.ordered_price = data.get("ordered_price")
@@ -61,14 +62,19 @@ class OrderService:
             order.status=OrderStatus.ORDER_PLACED
 
         # PO_RAISED move to DELIVERED
-        elif order.status == OrderStatus.ORDER_PLACED:
-            print("Is in elif")
+        elif (order.status == OrderStatus.ORDER_PLACED and data["status"]==OrderStatus.ORDER_DELIVERED) or (order.status == OrderStatus.PARTIALLY_DELIVERED and data["status"]==OrderStatus.ORDER_DELIVERED):
             order.received_date =data.get("received_date")
-            order.status = status
+            received_quantity = data.get("received_quantity")
+            pending_quantity = order.pending_quantity
+            if pending_quantity == received_quantity:
+                order.pending_quantity = pending_quantity - received_quantity
+                order.status = OrderStatus.ORDER_DELIVERED
+            else:
+                order.pending_quantity = order.pending_quantity - received_quantity
+                order.status = OrderStatus.PARTIALLY_DELIVERED
         else:
             var = {"status": "Failed", "message": f"Order is already in {order.status}!"}
             return var
-        print(order.order_id, order.status)
         db.session.commit()
         return {"status": "success", "message": "Order updated successfully!"}
 
@@ -100,6 +106,7 @@ class OrderService:
 
             # Update order details with data from request
             order.order_quantity = data.get("order_quantity", order.order_quantity)
+            order.pending_quantity = order.order_quantity
             order.expected_price = data.get("expected_price", order.expected_price)
             order.approved_by = data.get("approved_by", order.approved_by)
             order.status = OrderStatus.PO_PENDING  # Update the status to Approved
