@@ -22,7 +22,7 @@ class OrderService:
 
     @staticmethod
     def fetch_delivery_pending_orders():
-        return OrderController.get_all_orders(status=OrderStatus.ORDER_PLACED)
+        return OrderController.get_all_orders(status=(OrderStatus.ORDER_PLACED, OrderStatus.PARTIALLY_DELIVERED))
 
     @staticmethod
     def add_order(data):

@@ -163,6 +163,7 @@ def raise_po(order_id):
         description: List of all orders
     """
     data = request.get_json()
+    data["status"]=OrderStatus.ORDER_PLACED
     return POService.raise_po(order_id, data)
 
 
@@ -180,15 +181,19 @@ def mark_order_delivered(order_id):
         type: integer
         description: ID of the order to mark as delivered
       - in : body
-        name: received_date
+        name: body
         schema:
           type: object
           required:
             - received_date
+            - received_quantity
           properties:
             received_date:
               type: string
               description: Date when the order was delivered
+            received_quantity:
+              type: integer
+              description: Number of items received
 
     responses:
       200:
@@ -197,6 +202,7 @@ def mark_order_delivered(order_id):
         description: Order not found
     """
     data = request.get_json()
+    data["status"] = OrderStatus.ORDER_DELIVERED
     return POService.update_order_delivery(order_id, data)
 
 
@@ -239,6 +245,7 @@ def approve_order(order_id):
         description: Order not found
     """
     data = request.get_json()
+    data["status"] = OrderStatus.REVIEW_PENDING
     return ApprovalService.approve_order(order_id, data)
 
 

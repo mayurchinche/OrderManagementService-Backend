@@ -119,6 +119,7 @@ def register():
         user_name = data.get('user_name')
         password = data.get('password')
         contact_number = data.get('contact_number')
+        role=data.get('role')
         if not id_token or not user_name or not password or not contact_number:
             return jsonify({"error": "Please provide id_token, user_name, password, and contact_number"}), 400
 
@@ -159,7 +160,7 @@ def register():
         db.session.rollback()  # Rollback in case of any error
         return jsonify({"error": "Database error occurred while registering user."}), 500
     except Exception as e:
-        return jsonify({"error": "An error occurred during registration."}), 500
+        return jsonify({"error": f"An error occurred during registration.{traceback.print_exc()}"}), 500
 
 
 @auth_bp.route('/generate_firebase_token', methods=['POST'])
