@@ -28,6 +28,8 @@ def add_order():
             - order_quantity
             - ordered_by
             - user_contact_number
+            - model
+            - customer_name
           properties:
             material_name:
               type: string
@@ -44,6 +46,12 @@ def add_order():
             user_contact_number:
               type: string
               description: contact_number of the person who ordered
+            model:
+              type: string
+              description: Model of the material
+            customer_name:
+              type: string
+              description: Name of the customer
 
     responses:
       201:

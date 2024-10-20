@@ -28,12 +28,16 @@ class OrderService:
         order_quantity = data['order_quantity']
         ordered_by = data['ordered_by']
         user_contact_number = data['user_contact_number']
+        model= data['model']
+        customer_name = data['customer_name']
         new_order = OrderDetails(
             material_name=material_name,
             order_date=order_date,
             order_quantity=order_quantity,
             ordered_by=ordered_by,
-            user_contact_number=user_contact_number
+            user_contact_number=user_contact_number,
+            model=model,
+            name_of_customer=customer_name
         )
         db.session.add(new_order)
         db.session.commit()
