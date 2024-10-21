@@ -1,16 +1,22 @@
+from functools import wraps
+
 from flask import Blueprint, request
 
+from src.constants.roles import Roles
 from src.constants.order_status import OrderStatus
-from src.core.services import reversal_order_service
-from src.core.services.order_service import OrderService
 from src.core.services.approval_service import ApprovalService
+from src.core.services.order_service import OrderService
 from src.core.services.po_service import POService
 from src.core.services.reversal_order_service import ReversalOrderService
+
+from src.sequrity.decorators import  apply_decorators
 
 core_blueprint = Blueprint('core', __name__)
 
 
+
 @core_blueprint.route("/orders/add_order", methods=['POST'])
+@apply_decorators()
 def add_order():
     """
     Add Order
@@ -59,11 +65,11 @@ def add_order():
     """
     data = request.get_json()
 
-
     return OrderService.add_order(data)
 
 
 @core_blueprint.route("/orders/ordered_by/<string:contact_number>", methods=['GET'])
+@apply_decorators()
 def get_employee_orders(contact_number):
     """
     Get All Orders for logged-in user
@@ -84,6 +90,7 @@ def get_employee_orders(contact_number):
 
 
 @core_blueprint.route("/orders/get_all_orders", methods=['GET'])
+@apply_decorators()
 def get_all_orders():
     """
     Get All Orders
@@ -100,6 +107,7 @@ def get_all_orders():
 
 
 @core_blueprint.route("/orders/get_po_pending_orders", methods=['GET'])
+@apply_decorators()
 def get_po_pending_orders():
     """
     Get All PO_PENDING Orders
@@ -116,6 +124,7 @@ def get_po_pending_orders():
 
 
 @core_blueprint.route("/orders/get_delivery_pending_orders", methods=['GET'])
+@apply_decorators()
 def get_delivery_pending_orders():
     """
     Get All Delivery Pending Orders
@@ -132,6 +141,7 @@ def get_delivery_pending_orders():
 
 
 @core_blueprint.route("/orders/raise_po/<int:order_id>", methods=['POST'])
+@apply_decorators(allowed_roles=Roles.ONLY_PO_TEAM)
 def raise_po(order_id):
     """
     Raise Po for po pending order
@@ -171,11 +181,12 @@ def raise_po(order_id):
         description: List of all orders
     """
     data = request.get_json()
-    data["status"]=OrderStatus.ORDER_PLACED
+    data["status"] = OrderStatus.ORDER_PLACED
     return POService.raise_po(order_id, data)
 
 
 @core_blueprint.route("/orders/delivery/<int:order_id>", methods=['PUT'])
+@apply_decorators(allowed_roles=Roles.ONLY_PO_TEAM)
 def mark_order_delivered(order_id):
     """
     Mark Order as Delivered
@@ -215,6 +226,7 @@ def mark_order_delivered(order_id):
 
 
 @core_blueprint.route("/orders/approve/<int:order_id>", methods=['PUT'])
+@apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
 def approve_order(order_id):
     """
     Approve Order
@@ -258,6 +270,7 @@ def approve_order(order_id):
 
 
 @core_blueprint.route("/orders/review_pending", methods=['GET'])
+@apply_decorators()
 def get_review_pending_orders():
     """
     Get Review Pending Orders
@@ -270,7 +283,9 @@ def get_review_pending_orders():
     """
     return ApprovalService.get_review_pending_orders()
 
+
 @core_blueprint.route("/orders/add_reversal_order", methods=['POST'])
+@apply_decorators()
 def add_reversal_order():
     """
     Add Reversal Order
@@ -326,6 +341,7 @@ def add_reversal_order():
 
 
 @core_blueprint.route("/orders/reversal/get_all_reversal_orders", methods=['GET'])
+@apply_decorators()
 def get_all_reversal_orders():
     """
     Get Reversal Orders
@@ -337,7 +353,10 @@ def get_all_reversal_orders():
         description: List of reversal orders
     """
     return ReversalOrderService.get_reversal_orders()
+
+
 @core_blueprint.route("/orders/reversal/get_reversal_orders/<string:user_contact_number>", methods=['GET'])
+@apply_decorators()
 def get_reversal_order_by_user(user_contact_number):
     """
     Get Reversal Orders For Logged-In User
@@ -357,8 +376,8 @@ def get_reversal_order_by_user(user_contact_number):
     return ReversalOrderService.get_reversal_orders(user_contact_number=user_contact_number)
 
 
-
 @core_blueprint.route("/orders/reversal/approve_reversal_order/<int:reversal_order_id>", methods=['PUT'])
+@apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
 def approve_reversal_order(reversal_order_id):
     """
     Approve Order
@@ -379,12 +398,14 @@ def approve_reversal_order(reversal_order_id):
         description: Reversal Order not found
     """
 
-    data={
-        "status":OrderStatus.DC_PENDING
+    data = {
+        "status": OrderStatus.DC_PENDING
     }
-    return ReversalOrderService.update_reversal_status(reversal_order_id,data)
+    return ReversalOrderService.update_reversal_status(reversal_order_id, data)
+
 
 @core_blueprint.route("/orders/reversal/get_reversal_review_pending", methods=['GET'])
+@apply_decorators()
 def get_reversal_review_pending_orders():
     """
     Get Review Pending Orders
@@ -397,7 +418,9 @@ def get_reversal_review_pending_orders():
     """
     return ReversalOrderService.get_reversal_orders(status=OrderStatus.REVERSAL_REVIEW_PENDING)
 
+
 @core_blueprint.route("/orders/reversal/get_dc_pending", methods=['GET'])
+@apply_decorators()
 def get_dc_pending_orders():
     """
     Get DC Pending Orders
@@ -411,8 +434,8 @@ def get_dc_pending_orders():
     return ReversalOrderService.get_reversal_orders(status=OrderStatus.DC_PENDING)
 
 
-
 @core_blueprint.route("/orders/reversal/submit_dc_for_reversal/<int:reversal_order_id>", methods=['PUT'])
+@apply_decorators(allowed_roles=Roles.ONLY_PO_TEAM)
 def submit_dc_for_reversal(reversal_order_id):
     """
     Raise Delivery Chalan
@@ -439,13 +462,15 @@ def submit_dc_for_reversal(reversal_order_id):
       200:
         description: Submit Dc for Reversal Order
     """
-    data={
-    "status" : OrderStatus.REVERSAL_ORDER_PLACED,
-    "dc_number" : request.get_json().get('dc_number')
+    data = {
+        "status": OrderStatus.REVERSAL_ORDER_PLACED,
+        "dc_number": request.get_json().get('dc_number')
     }
-    return ReversalOrderService.update_reversal_status(reversal_order_id=reversal_order_id,data=data)
+    return ReversalOrderService.update_reversal_status(reversal_order_id=reversal_order_id, data=data)
+
 
 @core_blueprint.route("/orders/reversal/get_reversal_delivery_pending_orders", methods=['GET'])
+@apply_decorators()
 def get_reversal_delivery_pending_orders():
     """
     Get Reversal Delivery Pending Orders
@@ -458,7 +483,9 @@ def get_reversal_delivery_pending_orders():
     """
     return ReversalOrderService.get_reversal_orders(status=OrderStatus.REVERSAL_ORDER_PLACED)
 
+
 @core_blueprint.route("/orders/revrsal/delivery/<int:reversal_order_id>", methods=['PUT'])
+@apply_decorators(allowed_roles=Roles.ONLY_PO_TEAM)
 def mark_reversal_order_delivered(reversal_order_id):
     """
     Mark Reversal Order as Delivered
@@ -492,4 +519,3 @@ def mark_reversal_order_delivered(reversal_order_id):
     data["status"] = OrderStatus.REVERSAL_ORDER_DELIVERED
 
     return ReversalOrderService.update_reversal_status(reversal_order_id, data)
-

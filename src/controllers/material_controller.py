@@ -23,8 +23,8 @@ class MaterialController:
             return {"error": str(e)}, 500
 
     @staticmethod
-    def delete_material(material_id):
+    def delete_material(material_name):
         try:
-            return MaterialService.delete_material(material_id)
+            return MaterialService.delete_material(material_name)
         except Exception as e:
             return {"error": str(e)}, 500

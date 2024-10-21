@@ -336,10 +336,14 @@ def generate_jwt_token():
               type: object
               required:
                 - contact_number
+                - role
               properties:
                 contact_number:
                   type: string
                   description: "The user's contact number."
+                role:
+                  type: string
+                  description: "The user's role."
         responses:
           200:
             description: "Token generated successfully."
@@ -369,12 +373,14 @@ def generate_jwt_token():
     data = request.get_json()
     print("data", data)
     contact_number = data.get('contact_number')
+    role=data.get('role')
     if not contact_number or not isinstance(contact_number, str):
         return jsonify({"error": "Contact number is required and must be a string."}), 400
 
     try:
 
-        payload = {'sub': contact_number,  # This will act as the identity (subject) claim
+        payload = {'contact_number': contact_number,
+                   'role': role,# This will act as the identity (subject) claim
             'exp': datetime.utcnow() + timedelta(days=1)  # Token expires in 1 day
         }
 

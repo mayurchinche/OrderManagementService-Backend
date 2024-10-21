@@ -7,9 +7,9 @@ class OrderController:
     def get_all_orders(status=None,contact_number=None, limit=None, offset=None):
         try:
             orders = OrderService.get_orders(status,contact_number, limit, offset)
-            return {"data": [order.to_dict() for order in orders]}, 200
+            return jsonify({"data": [order.to_dict() for order in orders]}, 200)
         except Exception as e:
-            return {"message": f"Error fetching orders: {str(e)}"}, 500
+            return jsonify({"message": f"Error fetching orders: {str(e)}"}, 500)
     @staticmethod
     def add_order(data):
 
@@ -33,8 +33,7 @@ class OrderController:
 
     @staticmethod
     def approve_order(order_id,data):
-        response, status_code = OrderService.approve_order(order_id, data)
-        return response, status_code
+        return OrderService.approve_order(order_id, data)
 
     @staticmethod
     def raise_po(order_id,data):
