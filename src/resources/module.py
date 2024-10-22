@@ -42,7 +42,7 @@ def add_module():
     return ModuleController.add_module(data)
 
 @module_bp.route('/update/<string:material_name>/<string:module_name>', methods=['PUT'])
-@apply_decorators(allowed_roles=[Roles.ONLY_MANAGER])
+@apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
 def update_module(material_name, module_name):
     """
     Update an existing module for a material
@@ -85,7 +85,7 @@ def update_module(material_name, module_name):
     return ModuleController.update_module(material_name, module_name, data)
 
 @module_bp.route('/get/<string:material_name>', methods=['GET'])
-@apply_decorators(allowed_roles=[Roles.ONLY_MANAGER])
+@apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
 def get_modules(material_name):
     """
     Get all modules for a material
@@ -121,7 +121,7 @@ def get_modules(material_name):
     return ModuleController.get_modules(material_name)
 
 @module_bp.route('/delete/<string:material_name>/<string:module_name>', methods=['DELETE'])
-@apply_decorators(allowed_roles=[Roles.ONLY_MANAGER])
+@apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
 def delete_module(material_name, module_name):
     """
     Delete a module from a material
