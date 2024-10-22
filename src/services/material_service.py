@@ -58,8 +58,8 @@ class MaterialService:
         return jsonify({"status": "success", "message": "Material added successfully!"}, 201)
 
     @staticmethod
-    def delete_material(material_nmae):
-        material = Materials.query.filter_by(material_nmae=material_nmae).first()
+    def delete_material(material_name):
+        material = Materials.query.filter_by(material_name=material_name).first()
         if not material:
             return jsonify({"status": "fail", "message": "Material not found!"}, 404)
 

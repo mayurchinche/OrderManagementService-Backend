@@ -9,7 +9,7 @@ from ..logging.logging_handler import log_request, log_response
 
 
 # Wrapper function to apply the decorators automatically
-def apply_decorators(allowed_roles=[]):
+def apply_decorators(allowed_roles=None):
     def decorator(func):
         @wraps(func)
         @log_request
@@ -105,6 +105,8 @@ def jwt_required_with_contact_and_role(allowed_roles=None):
                 return jsonify({"error": "Invalid token payload"}), 401
 
             # Check if role is allowed (if specified)
+            print("allowed_roles", allowed_roles)
+            print("role", role)
             if allowed_roles and role_header not in allowed_roles:
                 return jsonify({"error": f"Access denied for role as {role_header}"}), 403
 

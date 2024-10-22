@@ -25,7 +25,7 @@ class MaterialResource(Resource):
         return MaterialController.get_all_materials()
 
     @staticmethod
-    @apply_decorators(allowed_roles=[Roles.ONLY_MANAGER])
+    @apply_decorators(allowed_roles=Roles.EMPLOYEE)
     def post():
         """
         Add New Material
@@ -55,17 +55,13 @@ class MaterialResource(Resource):
           500:
             description: Error adding material
         """
-        try:
-            # Extract data from request body
-            data = request.get_json()
-            # Call the controller to add material
-            return MaterialController.add_material(data)
-
-        except Exception as e:
-            return {"message": f"Failed to add material: {str(e)}"}, 500
+        # Extract data from request body
+        data = request.get_json()
+        # Call the controller to add material
+        return MaterialController.add_material(data)
 
     @staticmethod
-    @apply_decorators(allowed_roles=[Roles.ONLY_MANAGER])
+    @apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
     def delete():
         """
         Delete Material
@@ -91,8 +87,6 @@ class MaterialResource(Resource):
           500:
             description: Error deleting material
         """
-        parser = reqparse.RequestParser()
-        parser.add_argument("material_name", type=str, required=True, help="Material name cannot be blank!")
-        args = parser.parse_args()
+        data=request.get_json()
 
-        return MaterialController.delete_material(args["material_name"])
+        return MaterialController.delete_material(data.get("material_name"))
