@@ -104,9 +104,12 @@ def jwt_required_with_contact_and_role(allowed_roles=None):
             if not contact_number or not role:
                 return jsonify({"error": "Invalid token payload"}), 401
 
+            if role != role_header:
+                return jsonify({"error": f"Access denied for role as request is corrupted"}), 403
+
             # Check if role is allowed (if specified)
             print("allowed_roles", allowed_roles)
-            print("role", role)
+            print("role", role_header)
             if allowed_roles and role_header not in allowed_roles:
                 return jsonify({"error": f"Access denied for role as {role_header}"}), 403
 

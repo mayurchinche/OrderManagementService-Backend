@@ -26,7 +26,7 @@ class ModuleService:
             return jsonify({"message": "Module updated successfully"},201)
         except Exception as e:
             db.session.rollback()
-            return {"error": str(e)}
+            return jsonify({"error": str(e)},500)
 
     @staticmethod
     def get_modules(material_name):

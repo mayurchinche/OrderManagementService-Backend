@@ -6,7 +6,7 @@ from src.sequrity.decorators import apply_decorators
 module_bp = Blueprint('module', __name__)
 
 @module_bp.route('/add', methods=['POST'])
-@apply_decorators()
+@apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
 def add_module():
     """
     Add a new module to a material
@@ -85,7 +85,6 @@ def update_module(material_name, module_name):
     return ModuleController.update_module(material_name, module_name, data)
 
 @module_bp.route('/get/<string:material_name>', methods=['GET'])
-@apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
 def get_modules(material_name):
     """
     Get all modules for a material
