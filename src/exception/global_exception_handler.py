@@ -13,8 +13,8 @@ def handle_exception(func):
             return jsonify({"error": "Value Error: " + str(ve)}), 400
         except TypeError as te:
             return jsonify({"error": "Type Error: " + str(te)}), 400
-        except SQLAlchemyError as de:
-            print(f"Database Error: {str(e)}")
+        except SQLAlchemyError as db_error:
+            print(f"Database Error: {str(db_error)}")
             return jsonify({"error": "Database error occurred while registering user."}), 500
         except Exception as e:
             # Handle other exceptions
