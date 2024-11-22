@@ -25,7 +25,7 @@ class MaterialResource(Resource):
         return MaterialController.get_all_materials()
 
     @staticmethod
-    @apply_decorators(allowed_roles=Roles.EMPLOYEE)
+    @apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
     def post():
         """
         Add New Material

@@ -3,40 +3,6 @@ from flask import jsonify
 
 from src.models.materials import Materials
 from src.db.db import db
-
-
-class MaterialService:
-
-    @staticmethod
-    def get_all_materials():
-        materials = Materials.query.all()
-        return [{"material_id": m.material_id, "material_name": m.material_name, "description": m.description} for m in
-                materials]
-
-    @staticmethod
-    def add_material(data):
-        material_name = data.get("material_name")
-        description = data.get("description", "")
-
-        if not material_name:
-            raise ValueError("Material name is required")
-
-        new_material = Materials(material_name=material_name, description=description)
-        db.session.add(new_material)
-        db.session.commit()
-        return {"material_id": new_material.material_id, "material_name": new_material.material_name,
-                "description": new_material.description}
-
-    @staticmethod
-    def delete_material(material_id):
-        material = Materials.query.get(material_id)
-        if material:
-            db.session.delete(material)
-            db.session.commit()
-            return True
-        return False
-
-
 from src.models.materials import Materials
 from src.db.db import db
 
