@@ -90,7 +90,7 @@ def get_employee_orders(contact_number):
 
 
 @core_blueprint.route("/orders/get_all_orders", methods=['GET'])
-@apply_decorators()
+@apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
 def get_all_orders():
     """
     Get All Orders
