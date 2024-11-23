@@ -120,8 +120,8 @@ def register():
         password = data.get('password')
         contact_number = data.get('contact_number')
         role=data.get('role')
-        if not id_token or not user_name or not password or not contact_number:
-            return jsonify({"error": "Please provide id_token, user_name, password, and contact_number"}), 400
+        if not id_token or not user_name or not password or not contact_number or not role:
+            return jsonify({"error": "Please provide id_token, user_name, password, and contact_number and role"}), 400
 
         # Verify the Firebase id_token
 

@@ -1,6 +1,6 @@
 from functools import wraps
-
-from flask import jsonify
+import json
+from flask import jsonify, Response
 from sqlalchemy.exc import SQLAlchemyError
 
 
@@ -10,14 +10,16 @@ def handle_exception(func):
         try:
             return func(*args, **kwargs)
         except ValueError as ve:
-            return jsonify({"error": "Value Error: " + str(ve)}), 400
+            return Response(json.dumps({"error": "Value Error: " + str(ve), "code": 400}), status=400)
+
         except TypeError as te:
-            return jsonify({"error": "Type Error: " + str(te)}), 400
+            return Response(json.dumps({"error":  "Type Error: " + str(te), "code": 400}), status=400)
+
         except SQLAlchemyError as db_error:
-            print(f"Database Error: {str(db_error)}")
-            return jsonify({"error": "Database error occurred"}), 500
+            return Response(json.dumps({"error": "Database error occurred", "code": 500}), status=500)
+
         except Exception as e:
             # Handle other exceptions
-            return jsonify({"error": "An internal error occurred: " + str(e)}), 500
+            return Response(json.dumps({"error":"An internal error occurred: " + str(e), "code": 500}), status=500)
 
     return wrapper
