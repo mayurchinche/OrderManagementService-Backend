@@ -20,4 +20,4 @@ class OrderManagementPerformanceTest(HttpUser):
                    "user_contact_number": "+919657491288"}
         self.client.post("/api/core/orders/add_order", json=payload,
                          headers={"content-type": "application/json", "accept": "application/json", "role": "manager",
-                                  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb250YWN0X251bWJlciI6Iis5MTk2NTc0OTEyODgiLCJyb2xlIjoibWFuYWdlciIsImV4cCI6MTczMjM4MTExMn0.4yXaUfECQJ6qWXVko9vtxf0bT8447CYmhbxZuIPdg_M"}, )  #  # @task(1)  # def fetch_po_pending_orders(self):  #     """Simulate fetching PO pending orders"""  #     self.client.get(  #         "/api/orders/po-pending",  #         headers={"Authorization": "Bearer <mocked_token>"},  #     )
+                                  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb250YWN0X251bWJlciI6Iis5MTk2NTc0OTEyODgiLCJyb2xlIjoibWFuYWdlciIsImV4cCI6MTczMjM4MTExMn0.4yXaUfECQJ6qWXVko9vtxf0bT8447CYmhbxZuIPdg_M"}, )
