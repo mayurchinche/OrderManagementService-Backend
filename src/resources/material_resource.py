@@ -1,12 +1,15 @@
 from flask import request
 from flask_restful import Resource, reqparse
-from src.controllers.material_controller import MaterialController
 
+from src.constants.roles import Roles
+from src.controllers.material_controller import MaterialController
+from src.sequrity.decorators import apply_decorators
 class MaterialResource(Resource):
     def __init__(self):
         self.controller = MaterialController()
 
     @staticmethod
+    @apply_decorators()
     def get():
         """
         Get All Materials
@@ -22,6 +25,7 @@ class MaterialResource(Resource):
         return MaterialController.get_all_materials()
 
     @staticmethod
+    @apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
     def post():
         """
         Add New Material
@@ -51,16 +55,13 @@ class MaterialResource(Resource):
           500:
             description: Error adding material
         """
-        try:
-            # Extract data from request body
-            data = request.get_json()
-            # Call the controller to add material
-            return MaterialController.add_material(data)
-
-        except Exception as e:
-            return {"message": f"Failed to add material: {str(e)}"}, 500
+        # Extract data from request body
+        data = request.get_json()
+        # Call the controller to add material
+        return MaterialController.add_material(data)
 
     @staticmethod
+    @apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
     def delete():
         """
         Delete Material
@@ -73,11 +74,11 @@ class MaterialResource(Resource):
             schema:
               type: object
               required:
-                - material_id
+                - material_name
               properties:
-                material_id:
-                  type: integer
-                  description: ID of the material to delete
+                material_name:
+                  type: string
+                  description: name of the material to delete
         responses:
           200:
             description: Material successfully deleted
@@ -86,8 +87,6 @@ class MaterialResource(Resource):
           500:
             description: Error deleting material
         """
-        parser = reqparse.RequestParser()
-        parser.add_argument("material_id", type=int, required=True, help="Material ID cannot be blank!")
-        args = parser.parse_args()
+        data=request.get_json()
 
-        return MaterialController.delete_material(args["material_id"])
+        return MaterialController.delete_material(data.get("material_name"))

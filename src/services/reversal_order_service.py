@@ -1,3 +1,5 @@
+from flask import jsonify
+
 from src.constants.order_status import OrderStatus
 from src.db.db import db
 from src.models.reversal_order import ReversalOrder
@@ -18,18 +20,18 @@ class ReversalOrderService:
         )
         db.session.add(new_reversal)
         db.session.commit()
-        return {"status": "success", "message": "Reversal order added successfully!"}
+        return jsonify({"status": "success", "message": "Reversal order added successfully!"},200)
 
     @staticmethod
     def update_reversal_status(reversal_order_id=None,data=None):
         print("Reversal Delivery",data)
         if not reversal_order_id and not data:
-            return {"status": "fail", "message": "Reversal order not found!"}
+            return jsonify({"status": "fail", "message": "Reversal order not found!"}, 404)
         if not reversal_order_id:
             reversal_order_id = data.get('reversal_order_id')
         reversal_order = ReversalOrder.query.get(reversal_order_id)
         if not reversal_order:
-            return {"status": "fail", "message": "Reversal order not found!"}
+            return jsonify({"status": "fail", "message": "Reversal order not found!"}, 404)
         if reversal_order.status == OrderStatus.REVERSAL_REVIEW_PENDING and data['status'] == OrderStatus.DC_PENDING:
             reversal_order.status = OrderStatus.DC_PENDING
         elif reversal_order.status == OrderStatus.DC_PENDING and data['status'] == OrderStatus.REVERSAL_ORDER_PLACED:
@@ -39,9 +41,9 @@ class ReversalOrderService:
             reversal_order.status = OrderStatus.REVERSAL_ORDER_DELIVERED
             reversal_order.delivered_at = data.get('delivered_at')
         else:
-            return {"status": "failed", "message": f"you order is already in {reversal_order.status} state "},400
+            return jsonify({"status": "failed", "message": f"you order is already in {reversal_order.status} state "},400)
         db.session.commit()
-        return {"status": "success", "message": "Reversal order updated successfully!"},200
+        return jsonify({"status": "success", "message": "Reversal order updated successfully!"},200)
 
     @staticmethod
     def get_reversal_orders(status=None,user_contact_number=None):
@@ -56,14 +58,14 @@ class ReversalOrderService:
             query = query.filter(ReversalOrder.status == status)
         elif status == OrderStatus.REVERSAL_ORDER_DELIVERED:
             query = query.filter(ReversalOrder.status == status)
-
-        return query.all()
+        reversal_orders=query.all()
+        return jsonify({"data": [reversal_order.to_dict() for reversal_order in reversal_orders]}, 200)
 
     @staticmethod
     def delete_reversal_order(reversal_order_id):
         reversal_order = ReversalOrder.query.get(reversal_order_id)
         if not reversal_order:
-            return {"status": "fail", "message": "Reversal order not found!"}
+            return jsonify({"status": "fail", "message": "Reversal order not found!"},404)
         db.session.delete(reversal_order)
         db.session.commit()
-        return {"status": "success", "message": "Reversal order deleted successfully!"}
+        return jsonify({"status": "success", "message": "Reversal order deleted successfully!"},200)

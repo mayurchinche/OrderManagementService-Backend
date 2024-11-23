@@ -1,8 +1,12 @@
 from flask import request
 from flask_restful import Resource
-from src.controllers.supplier_controller import SupplierController
 
+from src.constants.roles import Roles
+from src.controllers.supplier_controller import SupplierController
+from src.sequrity.decorators import apply_decorators
 class SupplierResource(Resource):
+
+    @apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
     def post(self):
         """
                 Add a new Supplier
@@ -46,6 +50,7 @@ class SupplierResource(Resource):
             return {"message": f"Failed to add supplier: {str(e)}"}, 500
 
     @staticmethod
+    @apply_decorators()
     def get():
         """
         Get All Suppliers

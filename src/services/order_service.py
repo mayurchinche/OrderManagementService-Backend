@@ -1,3 +1,5 @@
+from flask import jsonify
+
 from src.constants.order_status import OrderStatus
 from src.db.db import db
 from src.models.order_details import OrderDetails
@@ -28,16 +30,20 @@ class OrderService:
         order_quantity = data['order_quantity']
         ordered_by = data['ordered_by']
         user_contact_number = data['user_contact_number']
+        model= data['model']
+        customer_name = data['customer_name']
         new_order = OrderDetails(
             material_name=material_name,
             order_date=order_date,
             order_quantity=order_quantity,
             ordered_by=ordered_by,
-            user_contact_number=user_contact_number
+            user_contact_number=user_contact_number,
+            model=model,
+            name_of_customer=customer_name
         )
         db.session.add(new_order)
         db.session.commit()
-        return {"status": "success", "message": "Order added successfully!"}
+        return jsonify({"status": "success", "message": "Order added successfully!"},200)
 
     @staticmethod
     def update_order(order_id, data=None, status=None):
@@ -73,36 +79,36 @@ class OrderService:
                 order.pending_quantity = order.pending_quantity - received_quantity
                 order.status = OrderStatus.PARTIALLY_DELIVERED
         else:
-            var = {"status": "Failed", "message": f"Order is already in {order.status}!"}
+            var = jsonify({"status": "Failed", "message": f"Order is already in {order.status}!"},400)
             return var
         db.session.commit()
-        return {"status": "success", "message": "Order updated successfully!"}
+        return jsonify({"status": "success", "message": "Order updated successfully!"},200)
 
     @staticmethod
     def delete_order(order_id):
         order = OrderDetails.query.get(order_id)
         if not order:
-            return {"status": "fail", "message": "Order not found!"}
+            return jsonify({"status": "fail", "message": "Order not found!"}, 404)
 
         db.session.delete(order)
         db.session.commit()
-        return {"status": "success", "message": "Order deleted successfully!"}
+        return jsonify({"status": "success", "message": "Order deleted successfully!"}, 200)
 
     @staticmethod
     def get_review_pending_orders():
         try:
             # Query to get all orders with Review_Pending status
             review_pending_orders = OrderDetails.query.filter_by(status=OrderStatus.REVIEW_PENDING).all()
-            return [order.to_dict() for order in review_pending_orders]  # Assume `to_dict` is implemented in your model
+            return jsonify([order.to_dict() for order in review_pending_orders],200)  # Assume `to_dict` is implemented in your model
         except Exception as e:
-            raise Exception(f"Error fetching review pending orders: {str(e)}")
+            raise jsonify({"status": "fail", "message": f"Error fetching review pending orders: {str(e)}"}, 500)
 
     @staticmethod
     def approve_order(order_id, data):
         try:
             order = OrderDetails.query.filter_by(order_id=order_id).first()
             if not order:
-                return {"status": "fail", "message": "Order not found!"}, 404
+                return jsonify({"status": "fail", "message": "Order not found!"}, 404)
 
             # Update order details with data from request
             order.order_quantity = data.get("order_quantity", order.order_quantity)
@@ -113,7 +119,7 @@ class OrderService:
 
             # Commit changes to the database
             db.session.commit()
-            return {"status": "success", "message": "Order approved successfully!"}, 200
+            return jsonify({"status": "success", "message": "Order approved successfully!"}, 200)
         except Exception as e:
             db.session.rollback()
-            return {"status": "fail", "message": str(e)}, 500
+            return jsonify({"status": "fail", "message": str(e)}, 500)

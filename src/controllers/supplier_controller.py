@@ -1,5 +1,6 @@
 from src.services.supplier_service import SupplierService
 
+
 class SupplierController:
     @staticmethod
     def add_supplier(data):

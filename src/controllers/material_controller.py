@@ -11,7 +11,7 @@ class MaterialController:
         try:
             return MaterialService.get_all_materials()
         except Exception as e:
-            return {"error": str(e)}, 500
+            return jsonify({"error": str(e)}, 500)
 
     @staticmethod
     def add_material(data):
@@ -20,11 +20,11 @@ class MaterialController:
             description = data.get("description")
             return MaterialService.add_material(material_name,description)
         except Exception as e:
-            return {"error": str(e)}, 500
+            return jsonify({"error": str(e)}, 500)
 
     @staticmethod
-    def delete_material(material_id):
+    def delete_material(material_name):
         try:
-            return MaterialService.delete_material(material_id)
+            return MaterialService.delete_material(material_name)
         except Exception as e:
-            return {"error": str(e)}, 500
+            return jsonify({"error": str(e)}, 500)
