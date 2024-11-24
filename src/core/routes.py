@@ -8,6 +8,7 @@ from src.core.services.approval_service import ApprovalService
 from src.core.services.order_service import OrderService
 from src.core.services.po_service import POService
 from src.core.services.reversal_order_service import ReversalOrderService
+from src.core.services.analysis_service import AnalysisService
 
 from src.sequrity.decorators import  apply_decorators
 
@@ -519,3 +520,9 @@ def mark_reversal_order_delivered(reversal_order_id):
     data["status"] = OrderStatus.REVERSAL_ORDER_DELIVERED
 
     return ReversalOrderService.update_reversal_status(reversal_order_id, data)
+
+
+@core_blueprint.route("/api/cost-analysis/highlights", methods=['GET'])
+@apply_decorators()
+def get_cost_analysis_highlights():
+    return AnalysisService.get_cost_analysis_highlights()

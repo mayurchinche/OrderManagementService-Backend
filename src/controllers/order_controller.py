@@ -36,6 +36,11 @@ class OrderController:
         return OrderService.approve_order(order_id, data)
 
     @staticmethod
+    def get_sum_of_expected_price_and_sum_of_ordered_price(start_date,end_date):
+        return OrderService.get_sum_of_expected_price_and_sum_of_ordered_price(start_date,end_date)
+
+    @staticmethod
     def raise_po(order_id,data):
         print(data)
         return OrderService.update_order(order_id,data)
+
