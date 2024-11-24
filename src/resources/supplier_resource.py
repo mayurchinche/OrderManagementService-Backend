@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, jsonify
 from flask_restful import Resource
 
 from src.constants.roles import Roles
@@ -6,7 +6,7 @@ from src.controllers.supplier_controller import SupplierController
 from src.sequrity.decorators import apply_decorators
 class SupplierResource(Resource):
 
-    @apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
+    @apply_decorators(allowed_roles=Roles.ONLY_PO_TEAM)
     def post(self):
         """
                 Add a new Supplier
@@ -39,15 +39,12 @@ class SupplierResource(Resource):
         try:
             # Extract data from request body
             data = request.get_json()
-
             # Call the controller to add supplier
-            result, status_code = SupplierController.add_supplier(data)
-
             # Return the response from the controller
-            return result, status_code
+            return SupplierController.add_supplier(data)
 
         except Exception as e:
-            return {"message": f"Failed to add supplier: {str(e)}"}, 500
+            return jsonify({"message": f"Failed to add supplier: {str(e)}"}, 500)
 
     @staticmethod
     @apply_decorators()
