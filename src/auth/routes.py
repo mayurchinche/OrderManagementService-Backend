@@ -121,7 +121,7 @@ def register():
         contact_number = data.get('contact_number')
         role=data.get('role')
         if not id_token or not user_name or not password or not contact_number or not role:
-            return jsonify({"error": "Please provide id_token, user_name, password, and contact_number and role"}), 400
+            return jsonify({"error": "Please provide id_token, user_name, password, and contact_number and role"},400)
 
         # Verify the Firebase id_token
 
@@ -136,12 +136,12 @@ def register():
 
             # Ensure that the contact number matches the one in the Firebase token
             if contact_number != firebase_contact_number:
-                return jsonify({"error": "Contact number does not match Firebase token"}), 401
+                return jsonify({"error": "Contact number does not match Firebase token"},401)
 
             # Check if user already exists
             existing_user = User.query.filter_by(contact_number=contact_number).first()
             if existing_user:
-                return jsonify({"error": "User already exists"}), 409
+                return jsonify({"error": "User already exists"},409)
 
             hashed_password = generate_password_hash(password)
 
@@ -152,15 +152,15 @@ def register():
             # Add the user to the database
             db.session.add(new_user)
             db.session.commit()
-            return jsonify({"message": "User registered successfully!"}), 200
+            return jsonify({"message": "User registered successfully!"},200)
         else:
-            return jsonify({"error": "Something Went Wrong."}), 500
+            return jsonify({"error": "Something Went Wrong."},500)
     except SQLAlchemyError as e:
         print("SQLAlchemyError", traceback.print_exc())
         db.session.rollback()  # Rollback in case of any error
-        return jsonify({"error": "Database error occurred while registering user."}), 500
+        return jsonify({"error": "Database error occurred while registering user."},500)
     except Exception as e:
-        return jsonify({"error": f"An error occurred during registration.{traceback.print_exc()}"}), 500
+        return jsonify({"error": f"An error occurred during registration.{traceback.print_exc()}"},500)
 
 
 @auth_bp.route('/generate_firebase_token', methods=['POST'])
@@ -223,20 +223,20 @@ def generate_firebase_token():
     contact_number = data.get('contact_number')
 
     if not contact_number:
-        return jsonify({"error": "Contact number is required."}), 400
+        return jsonify({"error": "Contact number is required."},400)
 
     try:
         # Check if OTP has been verified (implement your own logic here)
         if not is_otp_verified(contact_number):  # Placeholder function
-            return jsonify({"error": "OTP not verified."}), 400
+            return jsonify({"error": "OTP not verified."},400)
 
         # Generate custom token
         custom_token = auth.create_custom_token(contact_number)
 
-        return jsonify({"token": custom_token.decode()}), 200
+        return jsonify({"token": custom_token.decode()},200)
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)},500)
 
 
 # Login route
@@ -283,26 +283,28 @@ def login():
         contact_number = data.get('contact_number')
         password = data.get('password')
         # Query the database for the user
+
         user = db.session.query(User).filter_by(contact_number=contact_number).first()
-        role=user.role
+
         if user is None:
             # user not found
-            return jsonify({"error": "User not found, Please Sign up First !"}), 404
+            return jsonify({"error": "User not found, Please Sign up First !"},404)
         # Check if the provided password matches the stored password
         if not check_password_hash(user.user_password, password):
-            return jsonify({"error": "Invalid password, Please try again!"}), 401
-
+            return jsonify({"error": "Invalid password, Please try again!"},401)
+        role = user.role
         # Generate JWT token for the user
         token = encode_jwt(user)  # You might want to include user ID or other info in the token
-        return jsonify({"message": "Login successful!", "token": token, "role": role}), 200
+
+        return jsonify({"message": "Login successful!", "token": token, "role": role}, 200)
 
 
     except SQLAlchemyError as e:
 
-        return jsonify({"error": "Database error occurred while login user."}), 500
+        return jsonify({"error": "Database error occurred while login user."},500)
 
     except Exception as e:
-        return jsonify({"error": f"Something went wrong, {e} {traceback.print_exc()}"}), 500
+        return jsonify({"error": f"Something went wrong, {e} {traceback.print_exc()}"},500)
 
 
 def is_otp_verified(contact_number):
@@ -375,22 +377,22 @@ def generate_jwt_token():
     contact_number = data.get('contact_number')
     role=data.get('role')
     if not contact_number or not isinstance(contact_number, str):
-        return jsonify({"error": "Contact number is required and must be a string."}), 400
+        return jsonify({"error": "Contact number is required and must be a string."}, 400)
 
     try:
 
         payload = {'contact_number': contact_number,
                    'role': role,# This will act as the identity (subject) claim
-            'exp': datetime.utcnow() + timedelta(days=1)  # Token expires in 1 day
+                    'exp': datetime.utcnow() + timedelta(days=1)  # Token expires in 1 day
         }
 
         # Encode the payload into a JWT using the secret key
         encoded_token = jwt.encode(payload, secret_key, algorithm='HS256')
 
-        return jsonify({"token": encoded_token}), 200
+        return jsonify({"token": encoded_token},200)
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)},500)
 
 
 @log_response
@@ -464,4 +466,4 @@ def protected():
     # Additional logic to process the request
 
     return jsonify(
-        {"message": "Protected route access granted", "contact_number": jwt_contact_number, "data": data}), 200
+        {"message": "Protected route access granted", "contact_number": jwt_contact_number, "data": data},200)
