@@ -31,7 +31,7 @@ def log_response(f):
         response = f(*args, **kwargs)
         if isinstance(response, tuple):
             response_json, status_code = response
-            logger.info(f"Response sent: {status_code} {json.dumps(response_json.json)}")
+            logger.info(f"Response sent: {status_code} {json.dumps(response_json)}")
         else:
             # Assume it's a Flask Response object
             logger.info(f"Response sent: {response.status_code} {response.data}")
