@@ -392,6 +392,16 @@ def approve_reversal_order(reversal_order_id):
         required: true
         type: integer
         description: ID of the reversal order to approve
+      - in: body
+        name: body
+        schema:
+          type: object
+          required:
+            - reversal_order_id
+          properties:
+            reversal_order_id:
+              type: integer
+              description: ID of the reversal order
     responses:
       200:
         description: Reversal Order approved successfully
@@ -525,4 +535,24 @@ def mark_reversal_order_delivered(reversal_order_id):
 @core_blueprint.route("/api/cost-analysis/highlights", methods=['GET'])
 @apply_decorators()
 def get_cost_analysis_highlights():
-    return AnalysisService.get_cost_analysis_highlights()
+    """
+       Get cost analysis highlights
+       ---
+       tags:
+         - Analysis Resource
+       parameters:
+         - in: query
+           name: start_date
+           required: true
+           type: string
+           description: Start Date
+         - in: query
+           name: end_date
+           required: true
+           type: string
+           description: End Date
+       responses:
+         200:
+           description: Highlights Details
+       """
+    return AnalysisService.get_cost_analysis_highlights(start_date=request.args.get('start_date'),end_date=request.args.get('end_date'))

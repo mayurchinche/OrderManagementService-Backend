@@ -128,14 +128,11 @@ class OrderService:
     @staticmethod
     def get_sum_of_expected_price_and_sum_of_ordered_price(start_date,end_date):
         try:
-            result = db.session.query(
+            result = (db.session.query(
                 func.sum(OrderDetails.expected_price).label('total_expected'),
                 func.sum(OrderDetails.ordered_price).label('total_ordered')
-            ).filter(
-                OrderDetails.status == OrderStatus.ORDER_DELIVERED,  # Only consider delivered orders
-                OrderDetails.received_date.between(start_date, end_date)
-            ).one()
-            return jsonify({"total_expected": result.total_expected or 0, "total_ordered": result.total_actual or 0},200)
+            ).filter(OrderDetails.order_date.between(start_date, end_date),OrderDetails.status == OrderStatus.ORDER_DELIVERED).one())
+            return jsonify({"total_expected": result.total_expected or 0, "total_ordered": result.total_ordered or 0},200)
         except Exception as e:
             db.session.rollback()
             return jsonify({"status": "fail", "message": str(e)}, 500)

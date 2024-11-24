@@ -15,7 +15,6 @@ class ReversalOrderService:
 
     @staticmethod
     def update_reversal_status(reversal_order_id=None,data=None):
-        print("Reversal Deliverd",data)
         return ReversalOrderController.update_reversal_status(reversal_order_id,data)
 
     @staticmethod

@@ -11,8 +11,8 @@ class AnalysisService:
         response = OrderController.get_sum_of_expected_price_and_sum_of_ordered_price(start_date,end_date)
         data = response.json
 
-        total_expected = data.get("total_expected", 0)
-        total_ordered = data.get("total_ordered", 0)
+        total_expected = data[0].get("total_expected", 0)
+        total_ordered = data[0].get("total_ordered", 0)
 
         # Perform calculations on the extracted values
         total_difference = total_expected - total_ordered
@@ -26,7 +26,6 @@ class AnalysisService:
 
         return jsonify({
             "total_savings": total_difference,
-            "percentage_savings": percentage_difference
+            "percentage_savings": f"{percentage_difference}%"
         },200)
-
 
