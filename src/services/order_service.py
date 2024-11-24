@@ -1,4 +1,9 @@
+import traceback
+from datetime import datetime
+
+from sqlalchemy.sql import text
 from flask import jsonify
+from gunicorn.config import PrintConfig
 from sqlalchemy import func
 
 from src.constants.order_status import OrderStatus
@@ -128,11 +133,66 @@ class OrderService:
     @staticmethod
     def get_sum_of_expected_price_and_sum_of_ordered_price(start_date,end_date):
         try:
+            if not start_date or not end_date:
+                return jsonify({"error": "start_date and end_date are required"}), 400
+
             result = (db.session.query(
                 func.sum(OrderDetails.expected_price).label('total_expected'),
                 func.sum(OrderDetails.ordered_price).label('total_ordered')
             ).filter(OrderDetails.order_date.between(start_date, end_date),OrderDetails.status == OrderStatus.ORDER_DELIVERED).one())
             return jsonify({"total_expected": result.total_expected or 0, "total_ordered": result.total_ordered or 0},200)
         except Exception as e:
+            db.session.rollback()
+            return jsonify({"status": "fail", "message": str(e)}, 500)
+
+    @staticmethod
+    def get_avg_of_expected_price_and_avg_of_ordered_price(start_date, end_date,interval):
+        try:
+            if not start_date or not end_date:
+                return jsonify({"error": "start_date and end_date are required"}), 400
+
+            # Define the SQL function for grouping
+            if interval == 'daily':
+                group_by_func = "DATE(order_date)"
+            elif interval == 'monthly':
+                group_by_func = "DATE_FORMAT(order_date, '%Y-%m')"
+            else:
+                return jsonify({"error": "Invalid interval"}), 400
+
+            # Raw SQL query
+            query = text(f"""
+                SELECT 
+                    {group_by_func} AS time_period,
+                    AVG(expected_price) AS average_expected_price,
+                    AVG(ordered_price) AS average_ordered_price
+                FROM 
+                    order_details
+                WHERE 
+                    status = 'Order_Delivered' 
+                    AND DATE(order_date) BETWEEN :start_date AND :end_date
+                GROUP BY 
+                    time_period
+                ORDER BY 
+                    time_period;
+            """)
+
+            # Execute the query
+            # Convert to YYYY-MM-DD format
+            start_date = datetime.strptime(start_date, "%d-%m-%Y").strftime("%Y-%m-%d")
+            end_date = datetime.strptime(end_date, "%d-%m-%Y").strftime("%Y-%m-%d")
+            results = db.session.execute(query, {"start_date": start_date, "end_date": end_date}).fetchall()
+            # Format response
+            trend = [
+                {
+                    "time_period": row.time_period,
+                    "average_expected_price": row.average_expected_price,
+                    "average_ordered_price": row.average_ordered_price
+                }
+                for row in results
+            ]
+
+            return jsonify({"trend": trend})
+        except Exception as e:
+            print(traceback.print_exc())
             db.session.rollback()
             return jsonify({"status": "fail", "message": str(e)}, 500)

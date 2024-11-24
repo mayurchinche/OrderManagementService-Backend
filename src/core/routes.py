@@ -556,3 +556,38 @@ def get_cost_analysis_highlights():
            description: Highlights Details
        """
     return AnalysisService.get_cost_analysis_highlights(start_date=request.args.get('start_date'),end_date=request.args.get('end_date'))
+
+
+@core_blueprint.route("/api/cost-analysis/get_price_trend", methods=['GET'])
+@apply_decorators()
+def get_price_trend():
+    """
+       Get get_price_trend
+       ---
+       tags:
+         - Analysis Resource
+       parameters:
+         - in: query
+           name: start_date
+           required: true
+           type: string
+           description: Start Date
+         - in: query
+           name: end_date
+           required: true
+           type: string
+           description: End Date
+         - in: query
+           name: interval
+           required: false
+           type: string
+           description: By Default Interval is daily specify if monthly
+       responses:
+         200:
+           description: Highlights Details
+       """
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    interval = request.args.get('interval', 'daily')  # Default to daily
+
+    return AnalysisService.get_price_trend(start_date, end_date,interval)
