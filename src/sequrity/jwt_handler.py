@@ -25,11 +25,11 @@ def decode_jwt(token):
         payload = jwt.decode(token, secret_key,algorithms=['HS256'])
         return payload, 200
     except jwt.InvalidSignatureError:
-        return jsonify({"error": "Invalid signature", "code": "401"}),401  # Invalid signature
+        return {"error": "Invalid signature", "code": "401"},401  # Invalid signature
     except jwt.ExpiredSignatureError:
-        return jsonify({"error": "Token has expired", "code": "401"}),401  # Token has expired
+        return {"error": "Token has expired", "code": "401"},401  # Token has expired
     except jwt.InvalidTokenError:
-        return jsonify({"error": "Invalid token", "code": "401"}),401  # Invalid token
+        return {"error": "Invalid token", "code": "401"},401  # Invalid token
 
 @handle_exception
 def create_jwt_token(identity,role):

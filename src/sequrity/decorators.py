@@ -93,11 +93,11 @@ def jwt_required_with_contact_and_role(allowed_roles=None):
             token = auth_header.split(" ")[1]
             role_header = request.headers.get('role')
             # Decode JWT
-            decoded_response,decode_status = decode_jwt(token)
+            decoded_response , decode_status = decode_jwt(token)
 
             # Extract contact_number and role from the token
             if decode_status != 200:
-                return decoded_response
+                return Response(json.dumps(decoded_response),status=decode_status)
 
             contact_number = decoded_response.get('contact_number')
             role = decoded_response.get('role')
