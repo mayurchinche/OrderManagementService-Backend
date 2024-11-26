@@ -468,3 +468,102 @@ def protected():
 
     return jsonify(
         {"message": "Protected route access granted", "contact_number": jwt_contact_number, "data": data},200)
+
+
+@auth_bp.route('/set_new_password', methods=['PUT'])
+@log_request
+@log_response
+@handle_exception
+def set_new_password():
+    """
+    Reset the user's password.
+
+    ---
+    tags:
+      - UserRegistration
+    summary: "Reset a user's password"
+    description: "This endpoint allows a user to reset their password by providing the required information."
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        description: JSON payload containing password reset data.
+        schema:
+          type: object
+          required:
+            - contact_number
+            - new_password
+          properties:
+            contact_number:
+              type: string
+              description: "The user's registered contact number."
+            new_password:
+              type: string
+              description: "The new password for the user."
+
+    responses:
+      200:
+        description: "Password updated successfully."
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Password reset successfully!"
+      400:
+        description: "Missing required fields or validation errors."
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Please provide contact_number and new_password."
+      404:
+        description: "User not found."
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "User not found."
+      500:
+        description: "Internal server error or database issues."
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "An internal error occurred. Please try again later."
+    """
+    try:
+        data = request.json
+        contact_number = data.get('contact_number')
+        new_password = data.get('new_password')
+
+        if not contact_number or not new_password:
+            return jsonify({"error": "Please provide contact_number and new_password."}, 400)
+
+        # Check if user exists
+        user = User.query.filter_by(contact_number=contact_number).first()
+        if not user:
+            return jsonify({"error": "User not found."}, 404)
+
+        # Hash the new password
+        hashed_password = generate_password_hash(new_password)
+
+        # Update the user's password
+        user.user_password = hashed_password
+        db.session.commit()
+
+        return jsonify({"message": "Password reset successfully!"}, 200)
+    except SQLAlchemyError as e:
+        print("SQLAlchemyError", traceback.print_exc())
+        db.session.rollback()  # Rollback in case of any error
+        return jsonify({"error": "Database error occurred while resetting password."}, 500)
+    except Exception as e:
+        print("Exception", traceback.print_exc())
+        return jsonify({"error": f"An error occurred while resetting password.{traceback.print_exc()}"}, 500)
