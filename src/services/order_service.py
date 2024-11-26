@@ -134,7 +134,7 @@ class OrderService:
     def get_sum_of_expected_price_and_sum_of_ordered_price(start_date,end_date):
         try:
             if not start_date or not end_date:
-                return jsonify({"error": "start_date and end_date are required"}), 400
+                return jsonify({"error": "start_date and end_date are required"},400)
 
             result = (db.session.query(
                 func.sum(OrderDetails.expected_price).label('total_expected'),
@@ -149,7 +149,7 @@ class OrderService:
     def get_avg_of_expected_price_and_avg_of_ordered_price(start_date, end_date,interval):
         try:
             if not start_date or not end_date:
-                return jsonify({"error": "start_date and end_date are required"}), 400
+                return jsonify({"error": "start_date and end_date are required"},400)
 
             # Define the SQL function for grouping
             if interval == 'daily':
@@ -157,7 +157,7 @@ class OrderService:
             elif interval == 'monthly':
                 group_by_func = "DATE_FORMAT(order_date, '%Y-%m')"
             else:
-                return jsonify({"error": "Invalid interval"}), 400
+                return jsonify({"error": "Invalid interval"},400)
 
             # Raw SQL query
             query = text(f"""
@@ -196,3 +196,124 @@ class OrderService:
             print(traceback.print_exc())
             db.session.rollback()
             return jsonify({"status": "fail", "message": str(e)}, 500)
+
+
+    @staticmethod
+    def get_supplier_performance(start_date, end_date):
+        try:
+            if not start_date or not end_date:
+                return jsonify({"error": "start_date and end_date are required"},400)
+
+            # Convert date formats to YYYY-MM-DD
+            try:
+                start_date = datetime.strptime(start_date, "%d-%m-%Y").strftime("%Y-%m-%d")
+                end_date = datetime.strptime(end_date, "%d-%m-%Y").strftime("%Y-%m-%d")
+            except ValueError:
+                return jsonify({"error": "Invalid date format. Use DD-MM-YYYY"},400)
+
+            # Query for average orders delivered by each supplier
+            query_avg_orders = text("""
+                SELECT 
+                    supplier_name,
+                    COUNT(*) AS total_orders,
+                    ROUND(COUNT(*) / NULLIF(DATEDIFF(:end_date, :start_date), 0), 2) AS average_orders_per_day
+                FROM 
+                    order_details
+                WHERE 
+                    status = 'Order_Delivered'
+                    AND DATE(STR_TO_DATE(order_date, '%Y-%m-%d')) BETWEEN :start_date AND :end_date
+                GROUP BY 
+                    supplier_name
+                ORDER BY 
+                    total_orders DESC;
+            """)
+            # Query for average delivery time by each supplier
+            query_avg_delivery_time = text("""
+                SELECT 
+                    supplier_name,
+                    AVG(DATEDIFF(STR_TO_DATE(order_date, '%Y-%m-%d'), STR_TO_DATE(received_date, '%Y-%m-%d'))) AS avg_delivery_days
+                FROM 
+                    order_details
+                WHERE 
+                    status = 'Order_Delivered'
+                    AND DATE(STR_TO_DATE(order_date, '%Y-%m-%d')) BETWEEN :start_date AND :end_date
+                GROUP BY 
+                    supplier_name
+                ORDER BY 
+                    avg_delivery_days ASC;
+            """)
+            print(start_date,end_date)
+            print("query_avg_delivery_time",query_avg_delivery_time)
+
+            query_monthly_avg_orders = text("""
+                SELECT 
+                    supplier_name,
+                    DATE_FORMAT(DATE(STR_TO_DATE(order_date, '%Y-%m-%d')), '%Y-%m') AS month,
+                    COUNT(*) AS total_orders_in_month,
+                    ROUND(AVG(COUNT(*)) OVER (PARTITION BY supplier_name), 2) AS average_orders_per_month
+                FROM 
+                    order_details
+                WHERE 
+                    status = 'Order_Delivered'
+                    AND DATE(STR_TO_DATE(order_date, '%Y-%m-%d')) BETWEEN :start_date AND :end_date
+                GROUP BY 
+                    supplier_name, month
+                ORDER BY 
+                    supplier_name, month;
+            """)
+
+            # Execute the queries
+            avg_orders_results = db.session.execute(query_avg_orders,
+                                                    {"start_date": start_date, "end_date": end_date}).fetchall()
+            avg_delivery_time_results = db.session.execute(query_avg_delivery_time,
+                                                           {"start_date": start_date, "end_date": end_date}).fetchall()
+
+            monhtly_avg_query_results = db.session.execute(
+                query_monthly_avg_orders,
+                {"start_date": start_date, "end_date": end_date}
+            )
+
+            monthly_avg_data = [
+                {
+                    "supplier_name": row.supplier_name,
+                    "month": row.month,
+                    "total_orders_in_month": row.total_orders_in_month,
+                    "average_orders_per_month": row.average_orders_per_month
+                }
+                for row in monhtly_avg_query_results
+            ]
+
+            # Format the results
+            avg_orders_data = [
+                {
+                    "supplier_name": row.supplier_name,
+                    "total_orders": row.total_orders,
+                    "average_orders_per_day": row.average_orders_per_day
+                }
+                for row in avg_orders_results
+            ]
+
+            avg_delivery_time_data = [
+                {
+                    "supplier_name": row.supplier_name,
+                    "avg_delivery_days": row.avg_delivery_days
+                }
+                for row in avg_delivery_time_results
+            ]
+
+            # Combine results into response
+            response = {
+                "average_orders_by_supplier": avg_orders_data,
+                "average_delivery_time_by_supplier": avg_delivery_time_data,
+                "monthly_orders_by_supplier": monthly_avg_data
+            }
+
+            return jsonify(response)
+        except Exception as ex:
+            db.session.rollback()
+            return jsonify({"status": "fail", "message": str(ex)}, 500)
+
+
+
+
+

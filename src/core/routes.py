@@ -591,3 +591,31 @@ def get_price_trend():
     interval = request.args.get('interval', 'daily')  # Default to daily
 
     return AnalysisService.get_price_trend(start_date, end_date,interval)
+
+@core_blueprint.route('/api/core/api/supplier-performance', methods=['GET'])
+def get_supplier_performance():
+    """
+       Get get_supplier_performance
+       ---
+       tags:
+         - Analysis Resource
+       parameters:
+         - in: query
+           name: start_date
+           required: true
+           type: string
+           description: Start Date
+         - in: query
+           name: end_date
+           required: true
+           type: string
+           description: End Date
+       responses:
+         200:
+           description: get_supplier_performance
+       """
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    return AnalysisService.get_supplier_performance(start_date, end_date)
+

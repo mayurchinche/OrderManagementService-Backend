@@ -47,3 +47,7 @@ class OrderController:
     @staticmethod
     def get_avg_of_expected_price_and_avg_of_ordered_price(start_date, end_date,interval):
         return OrderService.get_avg_of_expected_price_and_avg_of_ordered_price(start_date, end_date,interval)
+
+    @staticmethod
+    def get_supplier_performance(start_date, end_date):
+        return OrderService.get_supplier_performance(start_date, end_date)
