@@ -33,8 +33,11 @@ def create_app():
     app.register_blueprint(order_bp)
 
     from .resources import material_blueprint
-
     app.register_blueprint(material_blueprint, url_prefix='/api')
+
+    from .resources import customer_blueprint
+    app.register_blueprint(customer_blueprint, url_prefix='/api')
+
     from .resources import suppliers_blueprint
     app.register_blueprint(suppliers_blueprint, url_prefix='/api')
 
