@@ -242,8 +242,7 @@ class OrderService:
                 ORDER BY 
                     avg_delivery_days ASC;
             """)
-            print(start_date,end_date)
-            print("query_avg_delivery_time",query_avg_delivery_time)
+
 
             query_monthly_avg_orders = text("""
                 SELECT 
