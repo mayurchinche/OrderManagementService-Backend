@@ -293,10 +293,11 @@ def login():
         if not check_password_hash(user.user_password, password):
             return jsonify({"error": "Invalid password, Please try again!"},401)
         role = user.role
+        user_name=user.user_name
         # Generate JWT token for the user
         token = encode_jwt(user)  # You might want to include user ID or other info in the token
 
-        return jsonify({"message": "Login successful!", "token": token, "role": role}, 200)
+        return jsonify({"message": "Login successful!", "token": token, "role": role,"user_name": user_name}, 200)
 
 
     except SQLAlchemyError as e:
