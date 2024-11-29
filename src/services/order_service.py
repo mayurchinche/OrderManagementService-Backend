@@ -151,14 +151,17 @@ class OrderService:
             if not start_date or not end_date:
                 return jsonify({"error": "start_date and end_date are required"},400)
 
+            print("Start Date",start_date)
+            print("End Date",end_date)
             # Define the SQL function for grouping
             if interval == 'daily':
-                group_by_func = "DATE(order_date)"
+                group_by_func = "DATE(received_date)"
             elif interval == 'monthly':
-                group_by_func = "DATE_FORMAT(order_date, '%Y-%m')"
+                group_by_func = "DATE_FORMAT(received_date, '%Y-%m')"
             else:
                 return jsonify({"error": "Invalid interval"},400)
 
+            print("Group By Func",group_by_func)
             # Raw SQL query
             query = text(f"""
                 SELECT 
@@ -169,7 +172,7 @@ class OrderService:
                     order_details
                 WHERE 
                     status = 'Order_Delivered' 
-                    AND DATE(order_date) BETWEEN :start_date AND :end_date
+                    AND DATE(received_date) BETWEEN :start_date AND :end_date
                 GROUP BY 
                     time_period
                 ORDER BY 
@@ -181,6 +184,10 @@ class OrderService:
             start_date = datetime.strptime(start_date, "%d-%m-%Y").strftime("%Y-%m-%d")
             end_date = datetime.strptime(end_date, "%d-%m-%Y").strftime("%Y-%m-%d")
             results = db.session.execute(query, {"start_date": start_date, "end_date": end_date}).fetchall()
+
+            print("start_date",start_date)
+            print("end_date",end_date)
+            print("Printing exact query",str(query))
             # Format response
             trend = [
                 {
@@ -212,16 +219,15 @@ class OrderService:
                 return jsonify({"error": "Invalid date format. Use DD-MM-YYYY"},400)
 
             # Query for average orders delivered by each supplier
-            query_avg_orders = text("""
+            total_orders_by_supplier = text("""
                 SELECT 
                     supplier_name,
-                    COUNT(*) AS total_orders,
-                    ROUND(COUNT(*) / NULLIF(DATEDIFF(:end_date, :start_date), 0), 2) AS average_orders_per_day
+                    COUNT(*) AS total_orders
                 FROM 
                     order_details
                 WHERE 
                     status = 'Order_Delivered'
-                    AND DATE(STR_TO_DATE(order_date, '%Y-%m-%d')) BETWEEN :start_date AND :end_date
+                    AND DATE(STR_TO_DATE(received_date, '%Y-%m-%d')) BETWEEN :start_date AND :end_date
                 GROUP BY 
                     supplier_name
                 ORDER BY 
@@ -236,7 +242,7 @@ class OrderService:
                     order_details
                 WHERE 
                     status = 'Order_Delivered'
-                    AND DATE(STR_TO_DATE(order_date, '%Y-%m-%d')) BETWEEN :start_date AND :end_date
+                    AND DATE(STR_TO_DATE(received_date, '%Y-%m-%d')) BETWEEN :start_date AND :end_date
                 GROUP BY 
                     supplier_name
                 ORDER BY 
@@ -244,52 +250,51 @@ class OrderService:
             """)
 
 
-            query_monthly_avg_orders = text("""
-                SELECT 
-                    supplier_name,
-                    DATE_FORMAT(DATE(STR_TO_DATE(order_date, '%Y-%m-%d')), '%Y-%m') AS month,
-                    COUNT(*) AS total_orders_in_month,
-                    ROUND(AVG(COUNT(*)) OVER (PARTITION BY supplier_name), 2) AS average_orders_per_month
-                FROM 
-                    order_details
-                WHERE 
-                    status = 'Order_Delivered'
-                    AND DATE(STR_TO_DATE(order_date, '%Y-%m-%d')) BETWEEN :start_date AND :end_date
-                GROUP BY 
-                    supplier_name, month
-                ORDER BY 
-                    supplier_name, month;
-            """)
+            # query_monthly_avg_orders = text("""
+            #     SELECT
+            #         supplier_name,
+            #         DATE_FORMAT(DATE(STR_TO_DATE(order_date, '%Y-%m-%d')), '%Y-%m') AS month,
+            #         COUNT(*) AS total_orders_in_month,
+            #         ROUND(AVG(COUNT(*)) OVER (PARTITION BY supplier_name), 2) AS average_orders_per_month
+            #     FROM
+            #         order_details
+            #     WHERE
+            #         status = 'Order_Delivered'
+            #         AND DATE(STR_TO_DATE(received_date, '%Y-%m-%d')) BETWEEN :start_date AND :end_date
+            #     GROUP BY
+            #         supplier_name, month
+            #     ORDER BY
+            #         supplier_name, month;
+            # """)
 
             # Execute the queries
-            avg_orders_results = db.session.execute(query_avg_orders,
+            total_orders_by_supplier_results = db.session.execute(total_orders_by_supplier,
                                                     {"start_date": start_date, "end_date": end_date}).fetchall()
             avg_delivery_time_results = db.session.execute(query_avg_delivery_time,
                                                            {"start_date": start_date, "end_date": end_date}).fetchall()
 
-            monhtly_avg_query_results = db.session.execute(
-                query_monthly_avg_orders,
-                {"start_date": start_date, "end_date": end_date}
-            )
+            # monhtly_avg_query_results = db.session.execute(
+            #     query_monthly_avg_orders,
+            #     {"start_date": start_date, "end_date": end_date}
+            # )
 
-            monthly_avg_data = [
-                {
-                    "supplier_name": row.supplier_name,
-                    "month": row.month,
-                    "total_orders_in_month": row.total_orders_in_month,
-                    "average_orders_per_month": row.average_orders_per_month
-                }
-                for row in monhtly_avg_query_results
-            ]
+            # monthly_avg_data = [
+            #     {
+            #         "supplier_name": row.supplier_name,
+            #         "month": row.month,
+            #         "total_orders_in_month": row.total_orders_in_month,
+            #         "average_orders_per_month": row.average_orders_per_month
+            #     }
+            #     for row in monhtly_avg_query_results
+            # ]
 
             # Format the results
             avg_orders_data = [
                 {
                     "supplier_name": row.supplier_name,
-                    "total_orders": row.total_orders,
-                    "average_orders_per_day": row.average_orders_per_day
+                    "total_orders": row.total_orders
                 }
-                for row in avg_orders_results
+                for row in total_orders_by_supplier_results
             ]
 
             avg_delivery_time_data = [
@@ -303,8 +308,8 @@ class OrderService:
             # Combine results into response
             response = {
                 "average_orders_by_supplier": avg_orders_data,
-                "average_delivery_time_by_supplier": avg_delivery_time_data,
-                "monthly_orders_by_supplier": monthly_avg_data
+                "average_delivery_time_by_supplier": avg_delivery_time_data
+                # "monthly_orders_by_supplier": monthly_avg_data
             }
 
             return jsonify(response)
