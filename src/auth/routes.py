@@ -124,13 +124,12 @@ def register():
             return jsonify({"error": "Please provide id_token, user_name, password, and contact_number and role"},400)
 
         # Verify the Firebase id_token
-
-        decoded_token, status_code = firebase_service.verify_firebase_token(id_token)
+        # print(json.loads(firebase_service.verify_firebase_token(id_token).data))
+        firebase_user_data_json, status_code = json.loads(firebase_service.verify_firebase_token(id_token).data)
+        print("firebase_user_data_json",firebase_user_data_json)
+        print("status_code",status_code)
 
         if status_code == 200:
-            firebase_user_data = decoded_token.get_data(as_text=True)
-
-            firebase_user_data_json = json.loads(firebase_user_data)
 
             firebase_contact_number = firebase_user_data_json.get("contact_number")
 

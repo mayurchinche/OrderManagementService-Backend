@@ -40,18 +40,20 @@ def verify_firebase_token(id_token):
     try:
         # Verify the Firebase ID token
         decoded_token = auth.verify_id_token(id_token)
+        print("decoded_token",decoded_token)
         firebase_user_id = decoded_token['uid']
         firebase_contact_number = decoded_token.get('phone_number')
         # Proceed with further registration logic, e.g., saving the user to your database
+        print("User verified successfully!", firebase_user_id, firebase_contact_number)
         return jsonify({
             "message": "User registered successfully!",
             "uid": firebase_user_id,
             "contact_number": firebase_contact_number
-        }), 200
+        },200)
 
     except Exception as e:
         # Handle error if token verification fails
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": str(e)},400)
 
 @log_request
 @handle_exception
