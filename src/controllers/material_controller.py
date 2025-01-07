@@ -18,7 +18,8 @@ class MaterialController:
         try:
             material_name = data.get("material_name")
             description = data.get("description")
-            return MaterialService.add_material(material_name,description)
+            product_shortcut = data.get("product_shortcut")
+            return MaterialService.add_material(material_name,description,product_shortcut)
         except Exception as e:
             return jsonify({"error": str(e)}, 500)
 
