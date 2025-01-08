@@ -94,7 +94,7 @@ def get_employee_orders(contact_number):
 
 
 @core_blueprint.route("/orders/get_all_orders", methods=['GET'])
-@apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
+@apply_decorators()
 def get_all_orders():
     """
     Get All Orders
@@ -145,7 +145,7 @@ def get_delivery_pending_orders():
 
 
 @core_blueprint.route("/orders/raise_po/<int:order_id>", methods=['POST'])
-@apply_decorators(allowed_roles=Roles.ONLY_PO_TEAM)
+@apply_decorators()
 def raise_po(order_id):
     """
     Raise Po for po pending order
@@ -190,7 +190,7 @@ def raise_po(order_id):
 
 
 @core_blueprint.route("/orders/delivery/<int:order_id>", methods=['PUT'])
-@apply_decorators(allowed_roles=Roles.ONLY_PO_TEAM)
+@apply_decorators()
 def mark_order_delivered(order_id):
     """
     Mark Order as Delivered
@@ -230,7 +230,7 @@ def mark_order_delivered(order_id):
 
 
 @core_blueprint.route("/orders/approve/<int:order_id>", methods=['PUT'])
-@apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
+@apply_decorators()
 def approve_order(order_id):
     """
     Approve Order
@@ -381,7 +381,7 @@ def get_reversal_order_by_user(user_contact_number):
 
 
 @core_blueprint.route("/orders/reversal/approve_reversal_order/<int:reversal_order_id>", methods=['PUT'])
-@apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
+@apply_decorators()
 def approve_reversal_order(reversal_order_id):
     """
     Approve Order
@@ -449,7 +449,7 @@ def get_dc_pending_orders():
 
 
 @core_blueprint.route("/orders/reversal/submit_dc_for_reversal/<int:reversal_order_id>", methods=['PUT'])
-@apply_decorators(allowed_roles=Roles.ONLY_PO_TEAM)
+@apply_decorators()
 def submit_dc_for_reversal(reversal_order_id):
     """
     Raise Delivery Chalan
@@ -499,7 +499,7 @@ def get_reversal_delivery_pending_orders():
 
 
 @core_blueprint.route("/orders/revrsal/delivery/<int:reversal_order_id>", methods=['PUT'])
-@apply_decorators(allowed_roles=Roles.ONLY_PO_TEAM)
+@apply_decorators()
 def mark_reversal_order_delivered(reversal_order_id):
     """
     Mark Reversal Order as Delivered
