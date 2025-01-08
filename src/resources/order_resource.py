@@ -59,14 +59,23 @@ class OrderResource(Resource):
               type: object
               required:
                 - material_name
+                - material_code
                 - order_date
                 - order_quantity
                 - ordered_by
                 - user_contact_number
+                - model
+                - customer_name
               properties:
                 material_name:
                   type: string
                   description: Name of the material
+                material_code:
+                  type: string
+                  description: Code of the material
+                model:
+                  type: string
+                  description: Model of the material
                 order_date:
                   type: string
                   description: Date when the order is placed
@@ -79,6 +88,9 @@ class OrderResource(Resource):
                 user_contact_number:
                   type: string
                   description: contact_number of the person who ordered
+                customer_name:
+                  type: string
+                  description: customer_name
 
         responses:
           201:

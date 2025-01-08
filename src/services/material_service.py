@@ -18,17 +18,13 @@ class MaterialService:
     @staticmethod
     def add_material(material_name, description, product_shortcut):
         # Find the highest existing material code with the given product shortcut
-        last_material = (Materials.query
-                         .filter(Materials.material_code.startswith(product_shortcut))
-                         .order_by(Materials.material_code.desc())
-                         .first())
-
-        # Determine the next code number
-        if last_material:
-            last_number = int(last_material.material_code[len(product_shortcut):])
-            next_number = last_number + 1
-        else:
-            next_number = 1
+        product_shortcut=product_shortcut+'-'
+        count_query = (db.session.query(Materials)
+                       .filter(Materials.material_code.startswith(product_shortcut))
+                       .count())
+        print("count_query", count_query)
+        # The next material code number is count + 1
+        next_number = count_query + 1
 
         # Generate the new material code
         material_code = f"{product_shortcut}{str(next_number).zfill(2)}"
