@@ -41,6 +41,9 @@ def add_order():
             material_name:
               type: string
               description: Name of the material
+            material_code:
+              type: string
+              description: code of the material
             order_date:
               type: string
               description: Date when the order is placed

@@ -32,6 +32,7 @@ class OrderService:
     @staticmethod
     def add_order(data):
         material_name = data['material_name'],
+        material_code=data['material_code'],
         order_date = data['order_date']
         order_quantity = data['order_quantity']
         ordered_by = data['ordered_by']
@@ -40,6 +41,7 @@ class OrderService:
         customer_name = data['customer_name']
         new_order = OrderDetails(
             material_name=material_name,
+            material_code=material_code,
             order_date=order_date,
             order_quantity=order_quantity,
             ordered_by=ordered_by,

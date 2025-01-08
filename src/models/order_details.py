@@ -25,6 +25,7 @@ class OrderDetails(db.Model):
     expected_price = db.Column(db.Float, nullable=True)
     ordered_price = db.Column(db.Float, nullable=True)
     material_name = db.Column(db.String(100), db.ForeignKey("materials.material_name"), nullable=False)
+    material_code = db.Column(db.String(100),  nullable=False)
     supplier_name = db.Column(db.String(100), db.ForeignKey("suppliers.supplier_name"), nullable=True)
 
     # Define relationships
@@ -62,5 +63,6 @@ class OrderDetails(db.Model):
             "expected_price": self.expected_price,
             "ordered_price": self.ordered_price,
             "material_name": self.material_name,
+            "material_code": self.material_code,
             "supplier_name": self.supplier_name
         }

@@ -44,9 +44,13 @@ class MaterialResource(Resource):
                 material_name:
                   type: string
                   description: Name of the material
+                product_shortcut:
+                  type: string
+                  description: Shortcut of product
                 description:
                   type: string
                   description: Description of the material
+
         responses:
           201:
             description: Material successfully added
