@@ -25,7 +25,7 @@ class MaterialResource(Resource):
         return MaterialController.get_all_materials()
 
     @staticmethod
-    @apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
+    @apply_decorators()
     def post():
         """
         Add New Material
@@ -65,7 +65,7 @@ class MaterialResource(Resource):
         return MaterialController.add_material(data)
 
     @staticmethod
-    @apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
+    @apply_decorators()
     def delete():
         """
         Delete Material

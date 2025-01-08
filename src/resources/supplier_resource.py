@@ -6,7 +6,7 @@ from src.controllers.supplier_controller import SupplierController
 from src.sequrity.decorators import apply_decorators
 class SupplierResource(Resource):
 
-    @apply_decorators(allowed_roles=Roles.ONLY_PO_TEAM)
+    @apply_decorators()
     def post(self):
         """
                 Add a new Supplier

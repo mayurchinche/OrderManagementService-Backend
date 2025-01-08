@@ -6,7 +6,7 @@ from src.sequrity.decorators import apply_decorators
 module_bp = Blueprint('module', __name__)
 
 @module_bp.route('/add', methods=['POST'])
-@apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
+@apply_decorators()
 def add_module():
     """
     Add a new module to a material
@@ -42,7 +42,7 @@ def add_module():
     return ModuleController.add_module(data)
 
 @module_bp.route('/update/<string:material_name>/<string:module_name>', methods=['PUT'])
-@apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
+@apply_decorators()
 def update_module(material_name, module_name):
     """
     Update an existing module for a material
@@ -120,7 +120,7 @@ def get_modules(material_name):
     return ModuleController.get_modules(material_name)
 
 @module_bp.route('/delete/<string:material_name>/<string:module_name>', methods=['DELETE'])
-@apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
+@apply_decorators()
 def delete_module(material_name, module_name):
     """
     Delete a module from a material

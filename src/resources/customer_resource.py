@@ -28,7 +28,7 @@ class CustomerResource(Resource):
         return CustomerController.get_all_customers()
 
     @staticmethod
-    @apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
+    @apply_decorators()
     def post():
         """
         Add New Customer
@@ -64,7 +64,7 @@ class CustomerResource(Resource):
         return CustomerController.add_customer(data)
 
     @staticmethod
-    @apply_decorators(allowed_roles=Roles.ONLY_MANAGER)
+    @apply_decorators()
     def delete():
         """
         Delete Customer
