@@ -46,9 +46,11 @@ class ReversalOrderService:
         return jsonify({"status": "success", "message": "Reversal order updated successfully!"},200)
 
     @staticmethod
-    def get_reversal_orders(status=None,user_contact_number=None):
+    def get_reversal_orders(status=None,user_contact_number=None,order_id=None):
         query = ReversalOrder.query
-        if user_contact_number:
+        if order_id:
+            query = query.filter(ReversalOrder.original_order_id ==order_id)
+        elif user_contact_number:
             query = query.filter(ReversalOrder.user_contact_number == user_contact_number)
         elif status==OrderStatus.REVERSAL_REVIEW_PENDING:
             query = query.filter(ReversalOrder.status == status)

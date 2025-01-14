@@ -5,9 +5,8 @@ class ReversalOrderService:
     def __init__(self):
         pass
     @staticmethod
-    def get_reversal_orders(status=None,user_contact_number=None):
-        print("contact_number",user_contact_number)
-        return ReversalOrderController.get_reversal_orders(status=status,user_contact_number=user_contact_number)
+    def get_reversal_orders(status=None,user_contact_number=None,order_id=None):
+        return ReversalOrderController.get_reversal_orders(status=status,user_contact_number=user_contact_number,order_id=order_id)
 
     @staticmethod
     def add_reversal_order(data):

@@ -2,7 +2,7 @@ from datetime import datetime
 from email.policy import default
 
 from src.db.db import db
-
+from src.constants.order_status import OrderStatus
 class OrderDetails(db.Model):
     __tablename__ = "order_details"
 
@@ -20,7 +20,7 @@ class OrderDetails(db.Model):
     ordered_by = db.Column(db.String(50), nullable=False, default='None')
     approved_by = db.Column(db.String(50), nullable=True, default='None')
     po_raised_by = db.Column(db.String(50), nullable=True, default='None')
-    status = db.Column(db.String(50), nullable=False, default='REVIEW_PENDING')
+    status = db.Column(db.String(50), nullable=False, default= OrderStatus.REVIEW_PENDING)
     note = db.Column(db.String(255), nullable=True, default='None')
     expected_price = db.Column(db.Float, nullable=True)
     ordered_price = db.Column(db.Float, nullable=True)

@@ -622,3 +622,22 @@ def get_supplier_performance():
 
     return AnalysisService.get_supplier_performance(start_date, end_date)
 
+@core_blueprint.route("/orders/reversal/get_reversal_orders_by_original_id/<int:original_order_id>", methods=['GET'])
+@apply_decorators()
+def get_reversal_order_by_original_id(original_order_id):
+    """
+    Get Reversal Orders By Original Order ID
+    ---
+    tags:
+      - Employee Resource
+    parameters:
+      - in: path
+        name: original_order_id
+        required: true
+        type: integer
+        description: The ID of the original order
+    responses:
+      200:
+        description: List of reversal orders
+    """
+    return ReversalOrderService.get_reversal_orders(order_id=original_order_id)

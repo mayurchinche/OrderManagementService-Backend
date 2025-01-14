@@ -10,8 +10,8 @@ class ReversalOrderController:
         return ReversalOrderService.update_reversal_status(reversal_order_id,data)
 
     @staticmethod
-    def get_reversal_orders(status=None,user_contact_number=None):
-        return ReversalOrderService.get_reversal_orders(status,user_contact_number)
+    def get_reversal_orders(status=None,user_contact_number=None,order_id=None):
+        return ReversalOrderService.get_reversal_orders(status=status,user_contact_number=user_contact_number,order_id=order_id)
 
     @staticmethod
     def delete_reversal_order(data):
